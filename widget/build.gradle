@@ -35,8 +35,12 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:cardview-v7:26.1.0'
+    compile 'com.android.support:recyclerview-v7:26.1.0'
+    compile 'com.android.support:design:26.1.0'
+    compile 'com.android.support:support-v13:26.1.0'
 
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
@@ -56,7 +60,7 @@ bintray {
         name = 'widget'
         userOrg = user
         licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/shanescarlett'
+        vcsUrl = 'https://github.com/shanescarlett/net.scarlettsystems.android'
         version {
             name = project.property('version')
             desc = project.property('version_description')
@@ -73,4 +77,13 @@ install {
             version project.property('version')
         }
     }
+}
+
+task generateSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier 'sources'
+}
+
+artifacts {
+    archives generateSourcesJar
 }
