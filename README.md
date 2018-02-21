@@ -23,13 +23,17 @@ Add the following dependency in the app's build.gradle file:
 
 ```
 dependencies {
-    compile 'net.scarlettsystems.android:widget:0.0.1'
+    compile 'net.scarlettsystems.android:widget:0.0.2'
 }
 ```
 
 ## EasyViewPager
 
 A wrapper library for the ViewPager widget to simplify instantiation.
+
+### Benefits
+
+Create paged views quickly without the need to specify a Pager Adapter. A generic instance of the adapter is created and managed internally within the EasyViewPager instance. Adding and removing pages are facilitated by simple method calls on this instance, by passing in Views.
 
 ### Usage
 
@@ -51,9 +55,75 @@ View view = new View(this);
 pager.addPage(view);
 ```
 
+## EasyRecyclerView
+
+A wrapper library for the RecyclerView widget to simplify instantiation.
+
+### Benefits
+
+Hides the implementation of the RecyclerView Adapter and simplifies the initialisation process.
+
+### Usage
+
+EasyViewPager can be defined in an XML layout file such as:
+
+```
+<net.scarlettsystems.android.widget.EasyRecyclerView
+		android:id="@+id/recycler"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"/>
+```
+
+EasyRecyclerView should be configured by passing in a LayoutManager, a view for the items (cards), and a listener to bind the data items with the views.
+
+```
+EasyRecyclerView recycler = findViewById(R.id.recycler);
+RecyclerView.LayoutManager lm = new LinearLayoutManager(this);
+recycler.setLayoutManager(lm)
+```
+
+The view of the item can be set by either setting a layout resource, or dynamically returning a View through the OnCreateItemViewListener. EasyRecyclerView will prefer inflating a layout from the resource set by setItemLayoutResource().
+
+```
+recycler.setItemLayoutResource(R.layout.card);
+
+//OR
+
+recycler.setOnCreateItemViewListener(new EasyRecyclerView.OnCreateItemViewListener()
+{
+	@Override
+	public View OnCreateItemView()
+	{
+		return new View(getContext());
+	}
+});
+```
+
+To actually populate the view, the OnBindItemViewListener must be specified, else nothing will be done for the newly created view.
+
+```
+recycler.setOnBindItemViewListener(new EasyRecyclerView.OnBindItemViewListener()
+{
+	@Override
+	public void OnBindItemView(View view, Object item)
+	{
+		//Find Views
+		TextView titleView = view.findViewById(R.id.title);
+		TextView messageView = view.findViewById(R.id.message);
+		
+		//Get Data from Item
+		String message = ((MyItem)item).getMessage();
+		
+		//Set Data to Views
+		titleView.setText("Hello!");
+		messageView.setText(message);
+	}
+});
+```
+
 ## Versioning
 
-Current version: 0.0.1 
+Current version: 0.0.2 
 
 ## Authors
 
