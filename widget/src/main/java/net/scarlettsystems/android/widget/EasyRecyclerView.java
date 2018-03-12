@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
@@ -15,16 +16,25 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
+/**
+ * A wrapper widget for Android's RecyclerView that simplifies instantiation and configuration
+ * of dynamic lists. EasyRecyclerView eliminates the the need to specify a RecyclerView Adapter.
+ * A generic instance of the adapter is created and managed internally within the EasyRecyclerView
+ * instance.
+ *
+ * Binding of views for EasyRecyclerView's elements are specified through callbacks and should be
+ * configured upon instantiation.
+ *
+ * @author Shane Scarlett
+ * @version 1.0.0
+ * @see RecyclerView
+ */
 public class EasyRecyclerView extends RecyclerView
 {
-
-	//Public constants
-
 	public static final int VERTICAL = OrientationHelper.VERTICAL;
 	public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
 
 	//Members
-
 	private Context mContext;
 	private ScarlettRecyclerAdapter mAdapter;
 	private LayoutManager mLayoutManager;
@@ -37,7 +47,6 @@ public class EasyRecyclerView extends RecyclerView
 	private float mInterpolationFactor = 1.0f;
 
 	//Constructors
-
 	public EasyRecyclerView(Context context)
 	{
 		super(context);
@@ -57,19 +66,52 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	//Interfaces
-
+	/**
+	 * Interface definition for a callback to be invoked when an item within the EasyRecyclerView
+	 * is clicked.
+	 *
+	 */
 	public interface OnItemClickListener
 	{
+		/**
+		 * Called when an item view is clicked.
+		 *
+		 * @param v view of the object that was clicked
+		 * @param object data object associated with the item
+		 */
 		void OnItemClick(View v, Object object);
 	}
 
+	/**
+	 * Interface definition for a callback to be invoked when a View for an item needs to be
+	 * created.
+	 *
+	 */
 	public interface OnCreateItemViewListener
 	{
+		/**
+		 * Called when the view for an item within the EasyRecyclerView needs to be created.
+		 *
+		 * @return the item view to be displayed
+		 */
 		View OnCreateItemView();
 	}
 
+	/**
+	 * Interface definition for a callback to be invoked when a data object is associated with
+	 * the item's View within the EasyRecyclerView.
+	 *
+	 */
 	public interface OnBindItemViewListener
 	{
+		/**
+		 * Called when the data needs to be bound to the item's view.
+		 * The necessary data should be read from
+		 * {@code item} and bound to {@code view}.
+		 *
+		 * @param view instantiated view of the item
+		 * @param item data object of the item
+		 */
 		void OnBindItemView(View view, Object item);
 	}
 
@@ -154,32 +196,73 @@ public class EasyRecyclerView extends RecyclerView
 
 	//External Settings Methods
 
+	/**
+	 * Set the callback to be invoked when an item within the EasyRecylclerView is clicked.
+	 *
+	 * @param l
+	 */
 	public void setOnItemClickListener(OnItemClickListener l)
 	{
 		mItemClickListener = l;
 	}
 
+	/**
+	 * Set the callback to be invoked when an item's view is to be created.
+	 *
+	 * Note: This callback does not need to be set if a layout is already configured through
+	 * {@link EasyRecyclerView#setItemLayoutResource(int)}. EasyRecyclerVIew will prefer inflating
+	 * the view from the specified resource.
+	 *
+	 * @param l
+	 */
 	public void setOnCreateItemViewListener(OnCreateItemViewListener l)
 	{
 		mOnCreateItemViewListener = l;
 	}
 
+	/**
+	 * Set the callback to be invoked when an item's data is to be bound to its associated view.
+	 *
+	 * @param l
+	 */
 	public void setOnBindItemViewListener(OnBindItemViewListener l)
 	{
 		mOnBindItemViewListener = l;
 	}
 
-	public void setItemLayoutResource(@LayoutRes int res)
+	/**
+	 * Set the layout resource to be used to inflate each item's view.
+	 *
+	 * Note: This callback does not need to be set if view creating is already configured through
+	 * {@link EasyRecyclerView#setOnCreateItemViewListener(OnCreateItemViewListener)}.
+	 * EasyRecyclerVIew will prefer inflating the view from the specified resource.
+	 *
+	 * @param resId layout resource to be used for item view creation
+	 */
+	public void setItemLayoutResource(@LayoutRes int resId)
 	{
-		mItemLayoutResource = res;
+		mItemLayoutResource = resId;
 	}
 
+	/**
+	 * Set the layout manager for the EasyRecyclerView.
+	 *
+	 * @param lm layout manager to be used
+	 */
 	@Override
 	public void setLayoutManager(RecyclerView.LayoutManager lm)
 	{
 		super.setLayoutManager(lm);
 	}
 
+	/**
+	 * Automatically create and set the EasyRecyclerView's layout manager with specified configuration.
+	 *
+	 * @param spanCount the number of columns (or rows if horizontal) the list should be presented in
+	 * @param orientation orientation of list in {@link OrientationHelper#HORIZONTAL} or {@link OrientationHelper#VERTICAL}
+	 * @param staggered specification of whether views in list should be staggered
+	 * @param reverseLayout specification of whether list should be reversed
+	 */
 	public void setLayoutManager(int spanCount, int orientation, boolean staggered, boolean reverseLayout)
 	{
 		LayoutManager lm;
@@ -210,31 +293,60 @@ public class EasyRecyclerView extends RecyclerView
 		super.setLayoutManager(lm);
 	}
 
-	public void setCardEnterDirection(int value)
+	/**
+	 * Set the direction from which the item views should come from when animating entrance.
+	 *
+	 * @param direction
+	 */
+	public void setCardEnterDirection(int direction)
 	{
-		mAnimator.setDirection(value);
+		mAnimator.setDirection(direction);
 	}
 
-	public void setCardAnimationAmount(int value)
+	/**
+	 * Set the distance item views should travel when animating entrance.
+	 *
+	 * @param distance translation distance in pixels
+	 */
+	public void setCardAnimationAmount(int distance)
 	{
-		mAnimator.setTranslationAmount(value);
+		mAnimator.setTranslationAmount(distance);
 	}
 
-	public void setAnimationDuration(int value)
+	/**
+	 * Set duration of animations associated with EasyRecyclerView.
+	 *
+	 * @param duration duration in milliseconds
+	 */
+	public void setAnimationDuration(int duration)
 	{
-		mAdapter.setAnimationDuration(value);
-		mAnimator.setAnimationDuration(value);
+		mAdapter.setAnimationDuration(duration);
+		mAnimator.setAnimationDuration(duration);
 	}
 
-	public void setAnimationStagger(int value)
+	/**
+	 * Set duration of stagger (delay) between animating entrance of each item view.
+	 * Item animations are staggered sequentially from the first visible item.
+	 *
+	 * @param duration stagger duration in milliseconds
+	 */
+	public void setAnimationStagger(int duration)
 	{
-		mAnimator.setStaggerDelay(value);
+		mAnimator.setStaggerDelay(duration);
 	}
 
-	public void setInterpolationFactor(float value)
+	/**
+	 * Set the interpolation factor of animations associated with EasyRecyclerVIew.
+	 *
+	 * @param factor degree to which the animation should be eased.
+	 *               Setting factor to 1.0f produces an upside-down y=x^2 parabola.
+	 *               Increasing factor above 1.0f makes exaggerates the ease-out effect
+	 *               (i.e., it starts even faster and ends evens slower)
+	 */
+	public void setInterpolationFactor(float factor)
 	{
-		mAdapter.setInterpolationFactor(value);
-		mAnimator.setInterpolationFactor(value);
+		mAdapter.setInterpolationFactor(factor);
+		mAnimator.setInterpolationFactor(factor);
 	}
 
 	public void setLoaderHeight(int value)
