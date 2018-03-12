@@ -7,17 +7,18 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 
 //Maven Variables
 group = 'net.scarlettsystems.android'
-version = project.property('widget_version')
-archivesBaseName = 'widget'
+version = project.property('glide_transformations_version')
+archivesBaseName = 'glidetransformations'
 
 android {
     compileSdkVersion 26
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
-        versionName project.property('widget_version')
+        versionName project.property('glide_transformations_version')
+        renderscriptSupportModeEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -27,17 +28,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    compile 'com.android.support:cardview-v7:26.1.0'
-    compile 'com.android.support:recyclerview-v7:26.1.0'
-    compile 'com.android.support:design:26.1.0'
-    compile 'com.android.support:support-v13:26.1.0'
-
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+
     implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.github.bumptech.glide:glide:4.6.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
@@ -49,14 +46,14 @@ bintray {
     configurations = ['archives']
     pkg {
         repo = 'net.scarlettsystems.android'
-        name = 'widget'
+        name = 'glidetransformations'
         userOrg = user
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/shanescarlett/net.scarlettsystems.android'
         version {
-            name = project.property('widget_version')
-            desc = project.property('widget_version_description')
-            vcsTag = project.property('widget_version')
+            name = project.property('glide_transformations_version')
+            desc = project.property('glide_transformations_version_description')
+            vcsTag = project.property('glide_transformations_version')
         }
     }
 }
@@ -65,8 +62,8 @@ install {
     repositories.mavenInstaller {
         pom.project {
             group 'net.scarlettsystems.android'
-            artifactId 'widget'
-            version project.property('widget_version')
+            artifactId 'glidetransformations'
+            version project.property('glide_transformations_version')
         }
     }
 }

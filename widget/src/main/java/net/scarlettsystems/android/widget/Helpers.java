@@ -2,6 +2,7 @@ package net.scarlettsystems.android.widget;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -28,6 +29,13 @@ class Helpers
 			return resources.getDimensionPixelSize(resourceId);
 		}
 		return 0;
+	}
+
+	public static int Dp2Pix(int dp, Context context)
+	{
+		DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+		int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+		return px;
 	}
 
 }

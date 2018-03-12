@@ -15,9 +15,9 @@ class CardAnimator extends SimpleItemAnimator
 
 	private Context mContext;
 	private RecyclerView mRecyclerView;
-	private float mInterpFactor = 2.0f;
+	private float mInterpolationFactor = 1.0f;
 	private int mStaggerDelay = 64;
-	private int mDuration = 200;
+	private int mDuration;
 	private int mDirection = 0;
 	private int mTranslationAmount = 100;
 
@@ -31,6 +31,7 @@ class CardAnimator extends SimpleItemAnimator
 	public CardAnimator(Context context, RecyclerView recyclerView)
 	{
 		mContext = context;
+		mDuration = mContext.getResources().getInteger(android.R.integer.config_mediumAnimTime);
 		mRecyclerView = recyclerView;
 	}
 
@@ -42,7 +43,7 @@ class CardAnimator extends SimpleItemAnimator
 		holder.itemView.setAlpha(1.0f);
 		Animator animator = getAnimator(mDirection, DIRECTION_OUT);
 		animator.setDuration(mDuration);
-		animator.setInterpolator(new AccelerateInterpolator(mInterpFactor));
+		animator.setInterpolator(new AccelerateInterpolator(mInterpolationFactor));
 		animator.setTarget(holder.itemView);
 		animator.setStartDelay(mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem));
 		animator.addListener(new AnimatorListenerAdapter()
@@ -66,7 +67,7 @@ class CardAnimator extends SimpleItemAnimator
 		holder.itemView.setAlpha(0.0f);
 		Animator animator = getAnimator(mDirection, DIRECTION_IN);
 		animator.setDuration(mDuration);
-		animator.setInterpolator(new DecelerateInterpolator(mInterpFactor));
+		animator.setInterpolator(new DecelerateInterpolator(mInterpolationFactor));
 		animator.setTarget(holder.itemView);
 		animator.setStartDelay(mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem));
 		animator.addListener(new AnimatorListenerAdapter()
@@ -195,12 +196,12 @@ class CardAnimator extends SimpleItemAnimator
 
 	public float getInterpolationFactor()
 	{
-		return mInterpFactor;
+		return mInterpolationFactor;
 	}
 
 	public void setInterpolationFactor(float value)
 	{
-		this.mInterpFactor = value;
+		this.mInterpolationFactor = value;
 	}
 
 	public int getStaggerDelay()

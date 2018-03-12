@@ -22,8 +22,8 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	private RecyclerView mRecyclerView;
 	private LoaderHolder mLoaderHolder;
 
-	private int mDuration = 200;
-	private float mInterpFactor = 2.0f;
+	private int mDuration;
+	private float mInterpFactor;
 	private int mLoaderHeight = 100;
 
 	private static final int TYPE_ITEM = 0;
@@ -36,20 +36,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		mDataset.add(new LoaderObject());
 	}
 
-	public void setAnimationDuration(int value)
-	{
-		mDuration = value;
-	}
-
-	public void setInterpolationFactor(float value)
-	{
-		mInterpFactor = value;
-	}
-
-	public void setLoaderHeight(int value)
-	{
-		mLoaderHeight = value;
-	}
+	//Holder Classes
 
 	private class ItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener
 	{
@@ -177,14 +164,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	}
 
+	//Interfaces
+
 	public interface OnItemClickListener
 	{
 		void OnItemClick(View v, Object object);
-	}
-
-	public void setOnItemClickListener(OnItemClickListener l)
-	{
-		mItemClickListener = l;
 	}
 
 	public interface ItemViewListener
@@ -193,10 +177,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		void OnBindItemView(View v, Object item);
 	}
 
-	public void setItemViewListener(ItemViewListener l)
-	{
-		mItemViewListener = l;
-	}
+	//Callback Methods
 
 	@Override
 	public void onAttachedToRecyclerView(RecyclerView recyclerView)
@@ -259,6 +240,50 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		}
 	}
 
+	//Getters & Setters
+
+	public void setOnItemClickListener(OnItemClickListener l)
+	{
+		mItemClickListener = l;
+	}
+
+	public void setItemViewListener(ItemViewListener l)
+	{
+		mItemViewListener = l;
+	}
+
+	public void setAnimationDuration(int value)
+	{
+		mDuration = value;
+	}
+
+	public void setInterpolationFactor(float value)
+	{
+		mInterpFactor = value;
+	}
+
+	public void setLoaderHeight(int value)
+	{
+		mLoaderHeight = value;
+	}
+
+	public ArrayList<Object> getItems()
+	{
+		return mDataset;
+	}
+
+	@Override
+	public long getItemId(int position)
+	{
+		return position;
+	}
+
+	@Override
+	public int getItemCount()
+	{
+		return mDataset.size();
+	}
+
 	@Override
 	public int getItemViewType(int position)
 	{
@@ -271,6 +296,8 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			return TYPE_ITEM;
 		}
 	}
+
+	//Control Methods
 
 	public void addItem(Object item)
 	{
@@ -319,23 +346,5 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	{
 		if(mLoaderHolder == null){return;}
 		mLoaderHolder.closeLoading();
-	}
-
-	public ArrayList<Object> getItems()
-	{
-		return mDataset;
-	}
-
-
-
-	@Override public long getItemId(int position)
-	{
-		return position;
-	}
-
-	@Override
-	public int getItemCount()
-	{
-		return mDataset.size();
 	}
 }

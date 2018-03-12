@@ -3,4 +3,15 @@
 	<declare-styleable name="EasyViewPager">
 		<attr name="swipeable" format="boolean"/>
 	</declare-styleable>
+
+	<declare-styleable name="FlexTextView">
+		<attr name="ftv_text" format="string"/>
+		<attr name="ftv_maxCollapsedLines" format="integer"/>
+		<attr name="ftv_enabled" format="boolean"/>
+		<attr name="ftv_collapsible" format="boolean"/>
+		<attr name="ftv_animateCollapse" format="boolean"/>
+		<attr name="ftv_buttonMargin" format="dimension"/>
+		<attr name="ftv_buttonSize" format="dimension"/>
+		<attr name="ftv_buttonImage" format="reference"/>
+	</declare-styleable>
 </resources>

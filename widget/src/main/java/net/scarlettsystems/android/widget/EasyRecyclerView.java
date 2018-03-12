@@ -33,6 +33,8 @@ public class EasyRecyclerView extends RecyclerView
 	private OnItemClickListener mItemClickListener = null;
 	private OnCreateItemViewListener mOnCreateItemViewListener = null;
 	private OnBindItemViewListener mOnBindItemViewListener = null;
+	private int mAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
+	private float mInterpolationFactor = 1.0f;
 
 	//Constructors
 
@@ -98,6 +100,8 @@ public class EasyRecyclerView extends RecyclerView
 	private void configureAdapter()
 	{
 		mAdapter = new ScarlettRecyclerAdapter();
+		mAdapter.setAnimationDuration(mAnimationDuration);
+		mAdapter.setInterpolationFactor(mInterpolationFactor);
 		mAdapter.setItemViewListener(new ScarlettRecyclerAdapter.ItemViewListener()
 		{
 			@Override
