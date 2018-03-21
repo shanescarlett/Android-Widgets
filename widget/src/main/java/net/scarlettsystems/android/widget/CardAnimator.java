@@ -4,11 +4,17 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.support.annotation.IntDef;
+import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.LinearLayout;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 class CardAnimator extends SimpleItemAnimator
 {
@@ -18,13 +24,18 @@ class CardAnimator extends SimpleItemAnimator
 	private float mInterpolationFactor = 1.0f;
 	private int mStaggerDelay = 64;
 	private int mDuration;
-	private int mDirection = 0;
+	private int mDirection;
 	private int mTranslationAmount = 100;
 
-	public static final int SLIDE_FROM_BOTTOM = 0;
-	public static final int SLIDE_FROM_TOP = 1;
-	public static final int SLIDE_FROM_LEFT = 2;
-	public static final int SLIDE_FROM_RIGHT = 3;
+	@IntDef({EAST, NORTH, WEST, SOUTH})
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Direction {}
+
+	public static final int EAST = 0;
+	public static final int NORTH = 2;
+	public static final int WEST = 4;
+	public static final int SOUTH = 6;
+
 	public static final int DIRECTION_IN = 0;
 	public static final int DIRECTION_OUT = 1;
 
@@ -121,7 +132,7 @@ class CardAnimator extends SimpleItemAnimator
 		return false;
 	}
 
-	private Animator getAnimator(int from, int direction)
+	private Animator getAnimator(@Direction int from, int direction)
 	{
 		int startPos, finalPos, multiplier;
 		String axisName;
@@ -148,14 +159,14 @@ class CardAnimator extends SimpleItemAnimator
 
 		switch(from)
 		{
-			case SLIDE_FROM_BOTTOM:
-			case SLIDE_FROM_TOP:
+			case SOUTH:
+			case NORTH:
 			{
 				axisName = "translationY";
 				break;
 			}
-			case SLIDE_FROM_LEFT:
-			case SLIDE_FROM_RIGHT:
+			case WEST:
+			case EAST:
 			{
 				axisName = "translationX";
 				break;
@@ -168,14 +179,14 @@ class CardAnimator extends SimpleItemAnimator
 
 		switch(from)
 		{
-			case SLIDE_FROM_BOTTOM:
-			case SLIDE_FROM_RIGHT:
+			case SOUTH:
+			case EAST:
 			{
 				multiplier = 1;
 				break;
 			}
-			case SLIDE_FROM_TOP:
-			case SLIDE_FROM_LEFT:
+			case NORTH:
+			case WEST:
 			{
 				multiplier = -1;
 				break;
@@ -224,14 +235,15 @@ class CardAnimator extends SimpleItemAnimator
 		this.mDuration = value;
 	}
 
+	@Direction
 	public int getDirection()
 	{
 		return mDirection;
 	}
 
-	public void setDirection(int value)
+	public void setDirection(@Direction int direction)
 	{
-		this.mDirection = value;
+		this.mDirection = direction;
 	}
 
 	public int getTranslationAmount()

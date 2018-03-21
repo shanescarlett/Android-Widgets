@@ -23,7 +23,7 @@ Add the following dependency in the app's build.gradle file:
 
 ```
 dependencies {
-    compile 'net.scarlettsystems.android:widget:0.0.2'
+    compile 'net.scarlettsystems.android:widget:0.1.0'
 }
 ```
 
@@ -123,7 +123,7 @@ recycler.setOnBindItemViewListener(new EasyRecyclerView.OnBindItemViewListener()
 
 ## Versioning
 
-Current version: 0.0.2 
+Current version: 0.1.0
 
 ## Authors
 

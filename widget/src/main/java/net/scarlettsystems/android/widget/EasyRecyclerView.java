@@ -1,6 +1,7 @@
 package net.scarlettsystems.android.widget;
 
 import android.content.Context;
+import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
@@ -13,7 +14,10 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 
 /**
@@ -31,9 +35,6 @@ import java.util.ArrayList;
  */
 public class EasyRecyclerView extends RecyclerView
 {
-	public static final int VERTICAL = OrientationHelper.VERTICAL;
-	public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
-
 	//Members
 	private Context mContext;
 	private ScarlettRecyclerAdapter mAdapter;
@@ -45,6 +46,14 @@ public class EasyRecyclerView extends RecyclerView
 	private OnBindItemViewListener mOnBindItemViewListener = null;
 	private int mAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 	private float mInterpolationFactor = 1.0f;
+	private boolean mEnabled = true;
+
+	@IntDef({HORIZONTAL, VERTICAL})
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Orientation {}
+
+	public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
+	public static final int VERTICAL = OrientationHelper.VERTICAL;
 
 	//Constructors
 	public EasyRecyclerView(Context context)
@@ -115,11 +124,6 @@ public class EasyRecyclerView extends RecyclerView
 		void OnBindItemView(View view, Object item);
 	}
 
-	public interface OnInteractListener
-	{
-
-	}
-
 	//Internal Configuration Methods
 
 	private void init(Context context)
@@ -171,10 +175,8 @@ public class EasyRecyclerView extends RecyclerView
 			@Override
 			public void OnItemClick(View v, Object object)
 			{
-				if(mItemClickListener == null)
-				{
-					return;
-				}
+				if(mItemClickListener == null){return;}
+				if(!mEnabled){return;}
 				mItemClickListener.OnItemClick(v, object);
 			}
 		});
@@ -196,11 +198,13 @@ public class EasyRecyclerView extends RecyclerView
 
 	//External Settings Methods
 
+	//Callbacks
 	/**
 	 * Set the callback to be invoked when an item within the EasyRecylclerView is clicked.
 	 *
-	 * @param l
+	 * @param l {@link OnItemClickListener}
 	 */
+	@SuppressWarnings("unused")
 	public void setOnItemClickListener(OnItemClickListener l)
 	{
 		mItemClickListener = l;
@@ -213,8 +217,9 @@ public class EasyRecyclerView extends RecyclerView
 	 * {@link EasyRecyclerView#setItemLayoutResource(int)}. EasyRecyclerVIew will prefer inflating
 	 * the view from the specified resource.
 	 *
-	 * @param l
+	 * @param l {@link OnCreateItemViewListener}
 	 */
+	@SuppressWarnings("unused")
 	public void setOnCreateItemViewListener(OnCreateItemViewListener l)
 	{
 		mOnCreateItemViewListener = l;
@@ -223,13 +228,47 @@ public class EasyRecyclerView extends RecyclerView
 	/**
 	 * Set the callback to be invoked when an item's data is to be bound to its associated view.
 	 *
-	 * @param l
+	 * @param l {@link OnBindItemViewListener}
 	 */
+	@SuppressWarnings("unused")
 	public void setOnBindItemViewListener(OnBindItemViewListener l)
 	{
 		mOnBindItemViewListener = l;
 	}
 
+	//Behaviour
+	/**
+	 * Enables user interaction with EasyRecyclerView.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void enable()
+	{
+		mEnabled = true;
+	}
+
+	/**
+	 * Disables all user input to EasyRecyclerView.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void disable()
+	{
+		mEnabled = false;
+	}
+
+	/**
+	 * Set enabled state for EasyRecyclerView.
+	 *
+	 * @param enabled desired enabled state
+	 */
+	@SuppressWarnings("unused")
+	public void setEnabled(boolean enabled)
+	{
+		mEnabled = enabled;
+	}
+
+	//Appearance
 	/**
 	 * Set the layout resource to be used to inflate each item's view.
 	 *
@@ -239,6 +278,7 @@ public class EasyRecyclerView extends RecyclerView
 	 *
 	 * @param resId layout resource to be used for item view creation
 	 */
+	@SuppressWarnings("unused")
 	public void setItemLayoutResource(@LayoutRes int resId)
 	{
 		mItemLayoutResource = resId;
@@ -263,7 +303,8 @@ public class EasyRecyclerView extends RecyclerView
 	 * @param staggered specification of whether views in list should be staggered
 	 * @param reverseLayout specification of whether list should be reversed
 	 */
-	public void setLayoutManager(int spanCount, int orientation, boolean staggered, boolean reverseLayout)
+	@SuppressWarnings("unused")
+	public void setLayoutManager(int spanCount, @Orientation int orientation, boolean staggered, boolean reverseLayout)
 	{
 		LayoutManager lm;
 		//Input validation
@@ -296,9 +337,10 @@ public class EasyRecyclerView extends RecyclerView
 	/**
 	 * Set the direction from which the item views should come from when animating entrance.
 	 *
-	 * @param direction
+	 * @param direction animation direction
 	 */
-	public void setCardEnterDirection(int direction)
+	@SuppressWarnings("unused")
+	public void setCardEnterDirection(@CardAnimator.Direction int direction)
 	{
 		mAnimator.setDirection(direction);
 	}
@@ -308,6 +350,7 @@ public class EasyRecyclerView extends RecyclerView
 	 *
 	 * @param distance translation distance in pixels
 	 */
+	@SuppressWarnings("unused")
 	public void setCardAnimationAmount(int distance)
 	{
 		mAnimator.setTranslationAmount(distance);
@@ -318,6 +361,7 @@ public class EasyRecyclerView extends RecyclerView
 	 *
 	 * @param duration duration in milliseconds
 	 */
+	@SuppressWarnings("unused")
 	public void setAnimationDuration(int duration)
 	{
 		mAdapter.setAnimationDuration(duration);
@@ -330,6 +374,7 @@ public class EasyRecyclerView extends RecyclerView
 	 *
 	 * @param duration stagger duration in milliseconds
 	 */
+	@SuppressWarnings("unused")
 	public void setAnimationStagger(int duration)
 	{
 		mAnimator.setStaggerDelay(duration);
@@ -343,37 +388,75 @@ public class EasyRecyclerView extends RecyclerView
 	 *               Increasing factor above 1.0f makes exaggerates the ease-out effect
 	 *               (i.e., it starts even faster and ends evens slower)
 	 */
+	@SuppressWarnings("unused")
 	public void setInterpolationFactor(float factor)
 	{
 		mAdapter.setInterpolationFactor(factor);
 		mAnimator.setInterpolationFactor(factor);
 	}
 
-	public void setLoaderHeight(int value)
+	/**
+	 * Set the height of the loader that appears at the end of the list while additional items
+	 * are being loaded
+	 *
+	 * @param height height in pixels
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderHeight(int height)
 	{
-		mAdapter.setLoaderHeight(value);
+		mAdapter.setLoaderHeight(height);
 	}
 
+	/**
+	 * Add item to the end of the dataset displayed in EasyRecyclerView.
+	 *
+	 * @param item item to add
+	 */
+	@SuppressWarnings("unused")
 	public void addItem(Object item)
 	{
 		mAdapter.addItem(item);
 	}
 
+	/**
+	 * Add a set of items to the end of the dataset displayed in EasyRecyclerView.
+	 *
+	 * @param items list of items to add
+	 */
+	@SuppressWarnings("unused")
 	public void addItems(ArrayList<Object> items)
 	{
 		mAdapter.addItems(items);
 	}
 
+	/**
+	 * Add item at specified index of the dataset displayed in EasyRecyclerView.
+	 *
+	 * @param item item to add
+	 * @param index destination index
+	 */
+	@SuppressWarnings("unused")
 	public void addItemAt(Object item, int index)
 	{
 		mAdapter.addItemAt(item, index);
 	}
 
+	/**
+	 * Remove item at specified index from the dataset displayed in EasyRecyclerVIew.
+	 *
+	 * @param index target index
+	 */
+	@SuppressWarnings("unused")
 	public void removeItem(int index)
 	{
 		mAdapter.removeItem(index);
 	}
 
+	/**
+	 * Clears all data from the dataset.
+	 *
+	 */
+	@SuppressWarnings("unused")
 	public void removeAll()
 	{
 		mAdapter.removeAll();

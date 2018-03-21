@@ -6,12 +6,21 @@
 
 	<declare-styleable name="FlexTextView">
 		<attr name="ftv_text" format="string"/>
-		<attr name="ftv_maxCollapsedLines" format="integer"/>
+		<attr name="ftv_max_collapsed_lines" format="integer"/>
 		<attr name="ftv_enabled" format="boolean"/>
 		<attr name="ftv_collapsible" format="boolean"/>
-		<attr name="ftv_animateCollapse" format="boolean"/>
-		<attr name="ftv_buttonMargin" format="dimension"/>
-		<attr name="ftv_buttonSize" format="dimension"/>
-		<attr name="ftv_buttonImage" format="reference"/>
+		<attr name="ftv_animation_enabled" format="boolean"/>
+		<attr name="ftv_button_margin" format="dimension"/>
+		<attr name="ftv_button_size" format="dimension"/>
+		<attr name="ftv_button_image" format="reference"/>
+		<attr name="ftv_mode" format="enum">
+			<enum name="collapsing" value="0"/>
+			<enum name="scrolling" value="1"/>
+		</attr>
+		<attr name="ftv_button_rotation" format="enum">
+			<enum name="anti_clockwise" value="-1"/>
+			<enum name="none" value="0"/>
+			<enum name="clockwise" value="1"/>
+		</attr>
 	</declare-styleable>
 </resources>

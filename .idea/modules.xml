@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://C:\Users\Main\Documents\Android Studio\Android-Widgets\Android.iml" filepath="C:\Users\Main\Documents\Android Studio\Android-Widgets\Android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Android-Widgets.iml" filepath="$PROJECT_DIR$/Android-Widgets.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Android.iml" filepath="$PROJECT_DIR$/Android.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/widget/widget.iml" filepath="$PROJECT_DIR$/widget/widget.iml" />
     </modules>
