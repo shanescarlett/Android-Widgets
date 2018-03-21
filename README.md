@@ -28,6 +28,7 @@ dependencies {
 ```
 
 ## EasyViewPager
+See more: [EasyViewPager Readme](../master/EASY_VIEW_PAGER.md)
 
 A wrapper library for the ViewPager widget to simplify instantiation.
 
@@ -35,27 +36,8 @@ A wrapper library for the ViewPager widget to simplify instantiation.
 
 Create paged views quickly without the need to specify a Pager Adapter. A generic instance of the adapter is created and managed internally within the EasyViewPager instance. Adding and removing pages are facilitated by simple method calls on this instance, by passing in Views.
 
-### Usage
-
-EasyViewPager can be defined in an XML layout file such as:
-
-```
-<net.scarlettsystems.android.widget.EasyViewPager
-		android:id="@+id/pager"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		app:swipeable="false"/>
-```
-
-Pages are programmatically added and automatically shown in the view:
-
-```
-EasyViewPager pager = findViewById(R.id.pager);
-View view = new View(this);
-pager.addPage(view);
-```
-
 ## EasyRecyclerView
+See more: [EasyRecyclerView Readme](../master/EASY_RECYCLER_VIEW.md)
 
 A wrapper library for the RecyclerView widget to simplify instantiation.
 
@@ -63,63 +45,17 @@ A wrapper library for the RecyclerView widget to simplify instantiation.
 
 Hides the implementation of the RecyclerView Adapter and simplifies the initialisation process.
 
-### Usage
+## FlexTextView
+See more: [FlexTextView Readme](../master/FLEX_TEXT_VIEW.md)
 
-EasyViewPager can be defined in an XML layout file such as:
+An adaptive text view widget focused on smooth animations between data changes and configurable truncation modes for long texts.
 
-```
-<net.scarlettsystems.android.widget.EasyRecyclerView
-		android:id="@+id/recycler"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"/>
-```
+### Benefits
 
-EasyRecyclerView should be configured by passing in a LayoutManager, a view for the items (cards), and a listener to bind the data items with the views.
+FlexTextView offers different modes to truncate long sequences of texts including
+* Collapsing mode where the view is collapsed to display a set number of lines and expanded by the user,
+* Scrolling mode where the view is sized to display a set number of lines and the user can scroll through.
 
-```
-EasyRecyclerView recycler = findViewById(R.id.recycler);
-RecyclerView.LayoutManager lm = new LinearLayoutManager(this);
-recycler.setLayoutManager(lm)
-```
-
-The view of the item can be set by either setting a layout resource, or dynamically returning a View through the OnCreateItemViewListener. EasyRecyclerView will prefer inflating a layout from the resource set by setItemLayoutResource().
-
-```
-recycler.setItemLayoutResource(R.layout.card);
-
-//OR
-
-recycler.setOnCreateItemViewListener(new EasyRecyclerView.OnCreateItemViewListener()
-{
-	@Override
-	public View OnCreateItemView()
-	{
-		return new View(getContext());
-	}
-});
-```
-
-To actually populate the view, the OnBindItemViewListener must be specified, else nothing will be done for the newly created view.
-
-```
-recycler.setOnBindItemViewListener(new EasyRecyclerView.OnBindItemViewListener()
-{
-	@Override
-	public void OnBindItemView(View view, Object item)
-	{
-		//Find Views
-		TextView titleView = view.findViewById(R.id.title);
-		TextView messageView = view.findViewById(R.id.message);
-		
-		//Get Data from Item
-		String message = ((MyItem)item).getMessage();
-		
-		//Set Data to Views
-		titleView.setText("Hello!");
-		messageView.setText(message);
-	}
-});
-```
 
 ## Versioning
 
