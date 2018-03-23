@@ -23,7 +23,7 @@ Add the following dependency in the app's build.gradle file:
 
 ```
 dependencies {
-    compile 'net.scarlettsystems.android:widget:0.1.0'
+    compile 'net.scarlettsystems.android:widget:0.1.1'
 }
 ```
 
@@ -59,7 +59,7 @@ FlexTextView offers different modes to truncate long sequences of texts includin
 
 ## Versioning
 
-Current version: 0.1.0
+Current version: 0.1.1
 
 ## Authors
 
