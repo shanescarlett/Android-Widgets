@@ -202,7 +202,7 @@ public class EasyRecyclerView extends RecyclerView
 
 	private void configureAnimator()
 	{
-		mAnimator = new CardAnimator(this);
+		mAnimator = new CardAnimator();
 		setItemAnimator(mAnimator);
 	}
 
