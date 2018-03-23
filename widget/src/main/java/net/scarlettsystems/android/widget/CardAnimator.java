@@ -4,16 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
-import android.content.Context;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.SimpleItemAnimator;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
 
@@ -23,20 +18,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This implementation of {@link RecyclerView.ItemAnimator} provides basic
- * animations on remove, add, and move events that happen to the items in
- * a RecyclerView. RecyclerView uses a DefaultItemAnimator by default.
+ * Augmentation of Android's DefaultItemAnimator, adding fly-in directions, staggering, and
+ * other functionality.
  *
- * @see RecyclerView#setItemAnimator(RecyclerView.ItemAnimator)
+ * @see android.support.v7.widget.DefaultItemAnimator
  */
+@SuppressWarnings("WeakerAccess")
 public class CardAnimator extends SimpleItemAnimator
 {
 	private static final boolean DEBUG = false;
 
 	private static TimeInterpolator sDefaultInterpolator;
 
-	private Context mContext;
-	private RecyclerView mRecyclerView;
 	private float mInterpolationFactor = 1.0f;
 	private int mStaggerDelay = 0;
 	private int mDuration;
@@ -48,14 +41,14 @@ public class CardAnimator extends SimpleItemAnimator
 	private ArrayList<MoveInfo> mPendingMoves = new ArrayList<>();
 	private ArrayList<ChangeInfo> mPendingChanges = new ArrayList<>();
 
-	ArrayList<ArrayList<ViewHolder>> mAdditionsList = new ArrayList<>();
-	ArrayList<ArrayList<MoveInfo>> mMovesList = new ArrayList<>();
-	ArrayList<ArrayList<ChangeInfo>> mChangesList = new ArrayList<>();
+	private ArrayList<ArrayList<ViewHolder>> mAdditionsList = new ArrayList<>();
+	private ArrayList<ArrayList<MoveInfo>> mMovesList = new ArrayList<>();
+	private ArrayList<ArrayList<ChangeInfo>> mChangesList = new ArrayList<>();
 
-	ArrayList<ViewHolder> mAddAnimations = new ArrayList<>();
-	ArrayList<ViewHolder> mMoveAnimations = new ArrayList<>();
-	ArrayList<ViewHolder> mRemoveAnimations = new ArrayList<>();
-	ArrayList<ViewHolder> mChangeAnimations = new ArrayList<>();
+	private ArrayList<ViewHolder> mAddAnimations = new ArrayList<>();
+	private ArrayList<ViewHolder> mMoveAnimations = new ArrayList<>();
+	private ArrayList<ViewHolder> mRemoveAnimations = new ArrayList<>();
+	private ArrayList<ViewHolder> mChangeAnimations = new ArrayList<>();
 
 	@IntDef({EAST, NORTH, WEST, SOUTH})
 	@Retention(RetentionPolicy.SOURCE)
@@ -70,11 +63,6 @@ public class CardAnimator extends SimpleItemAnimator
 
 	public static final int DIRECTION_IN = 0;
 	public static final int DIRECTION_OUT = 1;
-
-	public CardAnimator(RecyclerView recyclerView)
-	{
-		mRecyclerView = recyclerView;
-	}
 
 	private static class MoveInfo
 	{
@@ -215,9 +203,12 @@ public class CardAnimator extends SimpleItemAnimator
 				@Override
 				public void run()
 				{
+					int delay;
+					int firstAddingItemIndex = getFirstHolder(additions);
 					for (ViewHolder holder : additions)
 					{
-						animateAddImpl(holder);
+						delay = (holder.getLayoutPosition() - firstAddingItemIndex) * mStaggerDelay;
+						animateAddImpl(holder, delay);
 					}
 					additions.clear();
 					mAdditionsList.remove(additions);
@@ -236,6 +227,16 @@ public class CardAnimator extends SimpleItemAnimator
 				adder.run();
 			}
 		}
+	}
+
+	private int getFirstHolder(ArrayList<ViewHolder> additions)
+	{
+		int firstIndex = Integer.MAX_VALUE;
+		for (ViewHolder holder : additions)
+		{
+			firstIndex = Math.min(holder.getLayoutPosition(), firstIndex);
+		}
+		return firstIndex;
 	}
 
 	private void configureAnimator(View view, @Direction int from, int direction)
@@ -318,7 +319,11 @@ public class CardAnimator extends SimpleItemAnimator
 					public void onAnimationEnd(Animator animator)
 					{
 						animation.setListener(null);
-						view.setAlpha(0);
+						/* View must be ready to be added again in case a removed view is added back
+						off screen */
+						view.setAlpha(1);
+						view.setTranslationX(0);
+						view.setTranslationY(0);
 						dispatchRemoveFinished(holder);
 						mRemoveAnimations.remove(holder);
 						dispatchFinishedWhenDone();
@@ -335,15 +340,15 @@ public class CardAnimator extends SimpleItemAnimator
 		return true;
 	}
 
-	void animateAddImpl(final ViewHolder holder)
+	private void animateAddImpl(final ViewHolder holder, int delay)
 	{
 		final View view = holder.itemView;
 		final ViewPropertyAnimator animation = view.animate();
-		int firstVisibleItem = getFirstItemPosition(mRecyclerView.getLayoutManager());
-		int startDelay = mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem);
+		//int firstVisibleItem = getFirstItemPosition(mRecyclerView.getLayoutManager());
+		//int startDelay = mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem);
 		mAddAnimations.add(holder);
 		configureAnimator(view, mDirection, DIRECTION_IN);
-		animation.alpha(1).setStartDelay(startDelay).setDuration(getAddDuration())
+		animation.alpha(1).setStartDelay(delay).setDuration(getAddDuration())
 				.setListener(new AnimatorListenerAdapter()
 				{
 					@Override
@@ -411,9 +416,6 @@ public class CardAnimator extends SimpleItemAnimator
 		{
 			view.animate().translationY(0);
 		}
-		// TODO: make EndActions end listeners instead, since end actions aren't called when
-		// vpas are canceled (and can't end them. why?)
-		// need listener functionality in VPACompat for this. Ick.
 		final ViewPropertyAnimator animation = view.animate();
 		mMoveAnimations.add(holder);
 		animation.setDuration(getMoveDuration()).setListener(new AnimatorListenerAdapter()
@@ -596,7 +598,6 @@ public class CardAnimator extends SimpleItemAnimator
 		final View view = item.itemView;
 		// this will trigger end callback which should set properties to their target values.
 		view.animate().cancel();
-		// TODO if some other animations are chained to end, how do we cancel them as well?
 		for (int i = mPendingMoves.size() - 1; i >= 0; i--)
 		{
 			MoveInfo moveInfo = mPendingMoves.get(i);
@@ -864,25 +865,6 @@ public class CardAnimator extends SimpleItemAnimator
 		return !payloads.isEmpty() || super.canReuseUpdatedViewHolder(viewHolder, payloads);
 	}
 
-	private int getFirstItemPosition(RecyclerView.LayoutManager lm)
-	{
-		if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager)
-		{
-			return ((LinearLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-		}
-		if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager)
-		{
-			return ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-		}
-		if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)
-		{
-			return ((StaggeredGridLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPositions(null)[0];
-		} else
-		{
-			return 0;
-		}
-	}
-
 	public float getInterpolationFactor()
 	{
 		return mInterpolationFactor;
@@ -934,302 +916,3 @@ public class CardAnimator extends SimpleItemAnimator
 		this.mTranslationAmount = value;
 	}
 }
-
-//import android.animation.Animator;
-//import android.animation.AnimatorListenerAdapter;
-//import android.animation.ObjectAnimator;
-//import android.animation.ValueAnimator;
-//import android.content.Context;
-//import android.support.annotation.IntDef;
-//import android.support.v7.widget.GridLayoutManager;
-//import android.support.v7.widget.LinearLayoutManager;
-//import android.support.v7.widget.OrientationHelper;
-//import android.support.v7.widget.RecyclerView;
-//import android.support.v7.widget.SimpleItemAnimator;
-//import android.support.v7.widget.StaggeredGridLayoutManager;
-//import android.util.Log;
-//import android.view.View;
-//import android.view.animation.AccelerateInterpolator;
-//import android.view.animation.DecelerateInterpolator;
-//import android.widget.LinearLayout;
-//
-//import java.lang.annotation.Retention;
-//import java.lang.annotation.RetentionPolicy;
-//
-//class CardAnimator extends SimpleItemAnimator
-//{
-//	private Context mContext;
-//	private RecyclerView mRecyclerView;
-//	private float mInterpolationFactor = 1.0f;
-//	private int mStaggerDelay = 64;
-//	private int mDuration;
-//	private int mDirection;
-//	private int mTranslationAmount = 100;
-//
-//	@IntDef({EAST, NORTH, WEST, SOUTH})
-//	@Retention(RetentionPolicy.SOURCE)
-//	public @interface Direction {}
-//
-//	public static final int EAST = 0;
-//	public static final int NORTH = 2;
-//	public static final int WEST = 4;
-//	public static final int SOUTH = 6;
-//
-//	public static final int DIRECTION_IN = 0;
-//	public static final int DIRECTION_OUT = 1;
-//
-//	public CardAnimator(Context context, RecyclerView recyclerView)
-//	{
-//		mContext = context;
-//		mDuration = mContext.getResources().getInteger(android.R.integer.config_mediumAnimTime);
-//		mRecyclerView = recyclerView;
-//	}
-//
-//	@Override
-//	public boolean animateRemove(final RecyclerView.ViewHolder holder)
-//	{
-//		Log.e("CardAnimator","animateRemove");
-//		int firstVisibleItem = getFirstItemPosition(mRecyclerView.getLayoutManager());
-//		holder.itemView.setAlpha(1.0f);
-//		ValueAnimator animator = getAnimator(holder.itemView, mDirection, DIRECTION_OUT);
-//		animator.setInterpolator(new AccelerateInterpolator(mInterpolationFactor));
-//		animator.setStartDelay(mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem));
-//		animator.addListener(new AnimatorListenerAdapter()
-//		{
-//			@Override
-//			public void onAnimationEnd(Animator animation)
-//			{
-//				dispatchRemoveFinished(holder);
-//				super.onAnimationEnd(animation);
-//			}
-//		});
-//		animator.start();
-//		return true;
-//	}
-//
-//	@Override
-//	public boolean animateAdd(final RecyclerView.ViewHolder holder)
-//	{
-//		Log.e("CardAnimator","animateAdd");
-//		int firstVisibleItem = getFirstItemPosition(mRecyclerView.getLayoutManager());
-//		holder.itemView.setAlpha(0.0f);
-//		ValueAnimator animator = getAnimator(holder.itemView, mDirection, DIRECTION_IN);
-//		animator.setInterpolator(new DecelerateInterpolator(mInterpolationFactor));
-//		animator.setStartDelay(mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem));
-//		animator.addListener(new AnimatorListenerAdapter()
-//		{
-//			@Override
-//			public void onAnimationEnd(Animator animation)
-//			{
-//				dispatchAddFinished(holder);
-//				super.onAnimationEnd(animation);
-//			}
-//		});
-//		animator.start();
-//		return true;
-//	}
-//
-//	@Override
-//	public boolean animateMove(final RecyclerView.ViewHolder holder, int fromX, int fromY, int toX, int toY)
-//	{
-//		Log.e("CardAnimator","animateMove");
-//		Log.d("CardAnimator","Moving x from "+Integer.toString(fromX)+" to "+Integer.toString(toX)+", y from "+Integer.toString(fromY)+" to "+Integer.toString(toY));
-//		float dx = toX - fromX;
-//		float dy = toY - fromY;
-//		holder.itemView.animate()
-//				.translationXBy(dx)
-//				.translationYBy(dy)
-//				.setDuration(mDuration)
-//				.setListener(new AnimatorListenerAdapter()
-//				{
-//					@Override
-//					public void onAnimationEnd(Animator animation)
-//					{
-//						Log.d("CardAnimator","move finished");
-//						dispatchMoveFinished(holder);
-//						super.onAnimationEnd(animation);
-//					}
-//				})
-//				.start();
-//		return true;
-//	}
-//
-//	@Override
-//	public boolean animateChange(RecyclerView.ViewHolder oldHolder, RecyclerView.ViewHolder newHolder, int fromLeft, int fromTop, int toLeft, int toTop)
-//	{
-//		Log.e("CardAnimator","animateChange");
-//		dispatchChangeFinished(oldHolder, true);
-//		dispatchChangeFinished(newHolder, false);
-//		return false;
-//	}
-//
-//	@Override
-//	public void runPendingAnimations()
-//	{
-//
-//	}
-//
-//	@Override
-//	public void endAnimation(RecyclerView.ViewHolder item)
-//	{
-//
-//	}
-//
-//	@Override
-//	public void endAnimations()
-//	{
-//
-//	}
-//
-//	@Override
-//	public boolean isRunning()
-//	{
-//		return false;
-//	}
-//
-//	private ValueAnimator getAnimator(final View target, @Direction int from, int direction)
-//	{
-//		int xMovement, yMovement;
-//		int xStart, xEnd, yStart, yEnd;
-//		float alphaStart, alphaEnd;
-//		switch(from)
-//		{
-//			case NORTH:
-//				xMovement = 0;
-//				yMovement = -mTranslationAmount;
-//				break;
-//			case SOUTH:
-//				xMovement = 0;
-//				yMovement = mTranslationAmount;
-//				break;
-//			case EAST:
-//				xMovement = mTranslationAmount;
-//				yMovement = 0;
-//				break;
-//			case WEST:
-//				xMovement = -mTranslationAmount;
-//				yMovement = 0;
-//				break;
-//			default:
-//				throw new IllegalArgumentException("Invalid direction.");
-//		}
-//		switch(direction)
-//		{
-//			case DIRECTION_IN:
-//			{
-//				xStart = xMovement;
-//				xEnd = 0;
-//				yStart = yMovement;
-//				yEnd = 0;
-//				alphaStart = 0;
-//				alphaEnd = 1;
-//				break;
-//			}
-//			case DIRECTION_OUT:
-//			{
-//				xStart = 0;
-//				xEnd = xMovement;
-//				yStart = 0;
-//				yEnd = yMovement;
-//				alphaStart = 1;
-//				alphaEnd = 0;
-//				break;
-//			}
-//			default:
-//			{
-//				throw new IllegalArgumentException("Invalid direction.");
-//			}
-//		}
-//
-//		final int ox = xStart;
-//		final int oy = yStart;
-//		final int dx = xEnd - xStart;
-//		final int dy = yEnd - yStart;
-//		ValueAnimator animator = ValueAnimator.ofFloat(alphaStart, alphaEnd);
-//		animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
-//		{
-//			@Override
-//			public void onAnimationUpdate(ValueAnimator animation)
-//			{
-//				//Log.d("CardAnimator","transX: " + Float.toString((float)ox + ((float)dx * animation.getAnimatedFraction())));
-//				//Log.d("CardAnimator","transY: " + Float.toString((float)oy + ((float)dy * animation.getAnimatedFraction())));
-//				target.setTranslationX((float)ox + ((float)dx * animation.getAnimatedFraction()));
-//				target.setTranslationY((float)oy + ((float)dy * animation.getAnimatedFraction()));
-//				target.setAlpha((float)animation.getAnimatedValue());
-//			}
-//		});
-//		animator.setDuration(mDuration);
-//		return animator;
-//	}
-//
-//	private int getFirstItemPosition(RecyclerView.LayoutManager lm)
-//	{
-//		if(mRecyclerView.getLayoutManager() instanceof LinearLayoutManager)
-//		{
-//			return ((LinearLayoutManager)mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-//		}
-//		if(mRecyclerView.getLayoutManager() instanceof GridLayoutManager)
-//		{
-//			return ((GridLayoutManager)mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-//		}
-//		if(mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)
-//		{
-//			return ((StaggeredGridLayoutManager)mRecyclerView.getLayoutManager()).findFirstVisibleItemPositions(null)[0];
-//		}
-//		else
-//		{
-//			return 0;
-//		}
-//	}
-//
-//	public float getInterpolationFactor()
-//	{
-//		return mInterpolationFactor;
-//	}
-//
-//	public void setInterpolationFactor(float value)
-//	{
-//		this.mInterpolationFactor = value;
-//	}
-//
-//	public int getStaggerDelay()
-//	{
-//		return mStaggerDelay;
-//	}
-//
-//	public void setStaggerDelay(int value)
-//	{
-//		this.mStaggerDelay = value;
-//	}
-//
-//	public int getAnimationDuration()
-//	{
-//		return mDuration;
-//	}
-//
-//	public void setAnimationDuration(int value)
-//	{
-//		this.mDuration = value;
-//	}
-//
-//	@Direction
-//	public int getDirection()
-//	{
-//		return mDirection;
-//	}
-//
-//	public void setDirection(@Direction int direction)
-//	{
-//		this.mDirection = direction;
-//	}
-//
-//	public int getTranslationAmount()
-//	{
-//		return mTranslationAmount;
-//	}
-//
-//	public void setTranslationAmount(int value)
-//	{
-//		this.mTranslationAmount = value;
-//	}
-//}
