@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -54,6 +55,15 @@ public class EasyRecyclerView extends RecyclerView
 
 	public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
 	public static final int VERTICAL = OrientationHelper.VERTICAL;
+
+	@IntDef({NORTH, SOUTH, EAST, WEST})
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Direction {}
+
+	public static final int NORTH = CardAnimator.NORTH;
+	public static final int SOUTH = CardAnimator.SOUTH;
+	public static final int EAST = CardAnimator.EAST;
+	public static final int WEST = CardAnimator.WEST;
 
 	//Constructors
 	public EasyRecyclerView(Context context)
@@ -192,7 +202,7 @@ public class EasyRecyclerView extends RecyclerView
 
 	private void configureAnimator()
 	{
-		mAnimator = new CardAnimator(mContext, this);
+		mAnimator = new CardAnimator(this);
 		setItemAnimator(mAnimator);
 	}
 
@@ -340,7 +350,7 @@ public class EasyRecyclerView extends RecyclerView
 	 * @param direction animation direction
 	 */
 	@SuppressWarnings("unused")
-	public void setCardEnterDirection(@CardAnimator.Direction int direction)
+	public void setCardEnterDirection(@Direction int direction)
 	{
 		mAnimator.setDirection(direction);
 	}
@@ -460,5 +470,16 @@ public class EasyRecyclerView extends RecyclerView
 	public void removeAll()
 	{
 		mAdapter.removeAll();
+	}
+
+	/**
+	 * Get the number of items currently in EasyRecyclerView.
+	 *
+	 * @return number of items
+	 */
+	@SuppressWarnings("unused")
+	public int getItemCount()
+	{
+		return mAdapter.getItemCount();
 	}
 }

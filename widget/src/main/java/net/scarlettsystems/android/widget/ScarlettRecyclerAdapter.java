@@ -281,7 +281,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	@Override
 	public int getItemCount()
 	{
-		return mDataset.size();
+		return mDataset.size() - 1;
 	}
 
 	@Override
@@ -316,23 +316,35 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		{
 			addItem(items.get(c));
 		}
+		notifyItemRangeInserted(mDataset.size() - items.size() - 1, items.size());
 	}
 
 	public void addItemAt(Object item, int index)
 	{
+		if(index >= mDataset.size() - 1)
+		{
+			throw new IndexOutOfBoundsException("Index is out of bounds on EasyRecyclerView's items.");
+		}
 		mDataset.add(index, item);
 		notifyItemInserted(index);
 	}
 
 	public void removeItem(int index)
 	{
+		if(index >= mDataset.size() - 1)
+		{
+			throw new IndexOutOfBoundsException("Index is out of bounds on EasyRecyclerView's items.");
+		}
 		mDataset.remove(index);
 		notifyItemRemoved(index);
+		//notifyItemRangeChanged(index, getItemCount()-index);
 	}
 
 	public void removeAll()
 	{
+		Object loader = mDataset.get(mDataset.size() - 1);
 		mDataset.clear();
+		mDataset.add(loader);
 		notifyDataSetChanged();
 	}
 

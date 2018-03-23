@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 class ScarlettPagerAdapter extends PagerAdapter
 {
-	private ArrayList<View> mViews = new ArrayList<View>();
+	private ArrayList<View> mViews = new ArrayList<>();
 
 	@Override
 	public int getItemPosition (Object object)

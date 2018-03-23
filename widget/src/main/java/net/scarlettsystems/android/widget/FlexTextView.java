@@ -69,7 +69,7 @@ public class FlexTextView extends LinearLayout
 
 	//Behaviour flags
 	private boolean mEnabled = DEF_ENABLED;
-	private boolean mCollapseEnabled = true;
+	private boolean mCollapseEnabled = DEF_COLLAPSE_ENABLED;
 	private boolean mAnimationsEnabled = true;
 	private boolean mScrollEnabled = false;
 
@@ -127,6 +127,7 @@ public class FlexTextView extends LinearLayout
 		try
 		{
 			mTextView.setText(ta.getString(R.styleable.FlexTextView_ftv_text));
+			//mTextView.setTypeface(ta.getString(R.styleable.FlexTextView_fontFamily)
 			setMode(ta.getInt(R.styleable.FlexTextView_ftv_mode, DEF_MODE));
 			setEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_enabled, DEF_ENABLED));
 			setCollapseEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_collapsible, DEF_COLLAPSE_ENABLED));
