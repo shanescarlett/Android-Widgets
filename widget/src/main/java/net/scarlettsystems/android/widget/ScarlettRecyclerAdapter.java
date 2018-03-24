@@ -30,7 +30,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	private static final int TYPE_FOOTER = -1;
 	private static final int TYPE_LOADER = -2;
 
-	public ScarlettRecyclerAdapter()
+	ScarlettRecyclerAdapter()
 	{
 		mDataset = new ArrayList<>();
 		mDataset.add(new LoaderObject());
@@ -43,7 +43,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		private View mView;
 		private Object mItem;
 
-		public ItemHolder(View view)
+		ItemHolder(View view)
 		{
 			super(view);
 			mView = view;
@@ -60,12 +60,12 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			mItemClickListener.OnItemClick(v, mItem);
 		}
 
-		public void setItem(Object item)
+		void setItem(Object item)
 		{
 			this.mItem = item;
 		}
 
-		public Object getItem()
+		Object getItem()
 		{
 			return mItem;
 		}
@@ -82,7 +82,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		private RelativeLayout loaderContainer, view;
 		private boolean isOpen = false;
 
-		public LoaderHolder(View itemView)
+		LoaderHolder(View itemView)
 		{
 			super(itemView);
 			mContext = itemView.getContext();
@@ -114,7 +114,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			//loader.setIndeterminateTintList();
 		}
 
-		public void openLoading()
+		void openLoading()
 		{
 			if(!isOpen)
 			{
@@ -136,7 +136,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			}
 		}
 
-		public void closeLoading()
+		void closeLoading()
 		{
 			if(isOpen)
 			{
@@ -203,8 +203,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 				{
 					throw new IllegalArgumentException("OnCreateItemView must return a view.");
 				}
-				ItemHolder holder = new ItemHolder(view);
-				return holder;
+				return new ItemHolder(view);
 			}
 			case TYPE_LOADER:
 			{
@@ -236,40 +235,53 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		else if(vh instanceof LoaderHolder)
 		{
 			LoaderHolder holder = (LoaderHolder)vh;
-
 		}
 	}
 
 	//Getters & Setters
 
-	public void setOnItemClickListener(OnItemClickListener l)
+	void setOnItemClickListener(OnItemClickListener l)
 	{
 		mItemClickListener = l;
 	}
 
-	public void setItemViewListener(ItemViewListener l)
+	void setItemViewListener(ItemViewListener l)
 	{
 		mItemViewListener = l;
 	}
 
-	public void setAnimationDuration(int value)
+	void setAnimationDuration(int value)
 	{
 		mDuration = value;
 	}
 
-	public void setInterpolationFactor(float value)
+	void setInterpolationFactor(float value)
 	{
 		mInterpFactor = value;
 	}
 
-	public void setLoaderHeight(int value)
+	void setLoaderHeight(int value)
 	{
 		mLoaderHeight = value;
 	}
 
-	public ArrayList<Object> getItems()
+	Object getItem(int index)
 	{
-		return mDataset;
+		if(index >= getItemCount())
+		{
+			throw new IndexOutOfBoundsException("Index is out of bounds of EasyRecyclerView's items.");
+		}
+		return mDataset.get(index);
+	}
+
+	ArrayList<Object> getItems(int startIndex, int count)
+	{
+		return new ArrayList<>(mDataset.subList(startIndex, startIndex + count));
+	}
+
+	ArrayList<Object> getItems()
+	{
+		return new ArrayList<>(mDataset.subList(0, getItemCount()));
 	}
 
 	@Override
@@ -299,62 +311,67 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	//Control Methods
 
-	public void addItem(Object item)
+	void addItem(Object item)
 	{
 		int size = mDataset.size();
 		mDataset.add(size - 1, item);
-		notifyItemInserted(mDataset.size() - 2);
+		notifyItemInserted(getItemCount() - 1);
 		if(size==1)
 		{
 			mRecyclerView.scrollToPosition(0);
 		}
 	}
 
-	public void addItems(ArrayList<Object> items)
+	void addItems(ArrayList<?> items)
 	{
 		for(int c = 0; c < items.size(); c++)
 		{
 			addItem(items.get(c));
 		}
-		notifyItemRangeInserted(mDataset.size() - items.size() - 1, items.size());
+		notifyItemRangeInserted(getItemCount() - items.size(), items.size());
 	}
 
-	public void addItemAt(Object item, int index)
+	void addItemAt(Object item, int index)
 	{
-		if(index >= mDataset.size() - 1)
+		if(index >= getItemCount())
 		{
-			throw new IndexOutOfBoundsException("Index is out of bounds on EasyRecyclerView's items.");
+			throw new IndexOutOfBoundsException("Index is out of bounds of EasyRecyclerView's items.");
 		}
 		mDataset.add(index, item);
 		notifyItemInserted(index);
 	}
 
-	public void removeItem(int index)
+	void removeItem(int index)
 	{
-		if(index >= mDataset.size() - 1)
+		if(index >= getItemCount())
 		{
-			throw new IndexOutOfBoundsException("Index is out of bounds on EasyRecyclerView's items.");
+			throw new IndexOutOfBoundsException("Index is out of bounds of EasyRecyclerView's items.");
 		}
 		mDataset.remove(index);
 		notifyItemRemoved(index);
-		//notifyItemRangeChanged(index, getItemCount()-index);
 	}
 
-	public void removeAll()
+	void removeAll()
 	{
-		Object loader = mDataset.get(mDataset.size() - 1);
+		int originalItemCount = getItemCount();
+		Object loader = mDataset.get(originalItemCount);
 		mDataset.clear();
 		mDataset.add(loader);
-		notifyDataSetChanged();
+		notifyItemRangeRemoved(0, originalItemCount);
 	}
 
-	public void openLoading()
+	int indexOf(Object item)
+	{
+		return mDataset.indexOf(item);
+	}
+
+	void openLoading()
 	{
 		if(mLoaderHolder == null){return;}
 		mLoaderHolder.openLoading();
 	}
 
-	public void closeLoading()
+	void closeLoading()
 	{
 		if(mLoaderHolder == null){return;}
 		mLoaderHolder.closeLoading();

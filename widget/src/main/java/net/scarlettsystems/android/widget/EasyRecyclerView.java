@@ -3,19 +3,18 @@ package net.scarlettsystems.android.widget;
 import android.content.Context;
 import android.support.annotation.IntDef;
 import android.support.annotation.LayoutRes;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.view.animation.Interpolator;
+import android.widget.Toast;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -223,7 +222,7 @@ public class EasyRecyclerView extends RecyclerView
 	/**
 	 * Set the callback to be invoked when an item's view is to be created.
 	 *
-	 * Note: This callback does not need to be set if a layout is already configured through
+	 * <p>Note: This callback does not need to be set if a layout is already configured through
 	 * {@link EasyRecyclerView#setItemLayoutResource(int)}. EasyRecyclerVIew will prefer inflating
 	 * the view from the specified resource.
 	 *
@@ -282,7 +281,7 @@ public class EasyRecyclerView extends RecyclerView
 	/**
 	 * Set the layout resource to be used to inflate each item's view.
 	 *
-	 * Note: This callback does not need to be set if view creating is already configured through
+	 * <p>Note: This callback does not need to be set if view creating is already configured through
 	 * {@link EasyRecyclerView#setOnCreateItemViewListener(OnCreateItemViewListener)}.
 	 * EasyRecyclerVIew will prefer inflating the view from the specified resource.
 	 *
@@ -344,13 +343,70 @@ public class EasyRecyclerView extends RecyclerView
 		super.setLayoutManager(lm);
 	}
 
+	//Animation
 	/**
-	 * Set the direction from which the item views should come from when animating entrance.
+	 * Enable animations associated with EasyRecyclerView.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void enableAnimation()
+	{
+		setItemAnimator(mAnimator);
+	}
+
+	/**
+	 * Disable animations associated with EasyRecyclerView.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void disableAnimation()
+	{
+		setItemAnimator(null);
+	}
+
+	/**
+	 * Set enabled state of animations associated with EasyRecyclerView.
+	 *
+	 * @param enabled enabled state
+	 */
+	@SuppressWarnings("unused")
+	public void setAnimationEnabled(boolean enabled)
+	{
+		if(enabled)
+			enableAnimation();
+		else
+			disableAnimation();
+	}
+
+	/**
+	 * Set direction the card should enter from when being added.
 	 *
 	 * @param direction animation direction
 	 */
 	@SuppressWarnings("unused")
-	public void setCardEnterDirection(@Direction int direction)
+	public void setCardAddDirection(@Direction int direction)
+	{
+		mAnimator.setAddDirection(direction);
+	}
+
+	/**
+	 * Set direction the card should exit towards when being removed.
+	 *
+	 * @param direction animation direction
+	 */
+	@SuppressWarnings("unused")
+	public void setCardRemoveDirection(@Direction int direction)
+	{
+		mAnimator.setRemoveDirection(direction);
+	}
+
+	/**
+	 * Set a single direction for both cards entering and exiting the view.
+	 *
+	 * @param direction animation direction
+	 */
+	@SuppressWarnings("unused")
+	public void setCardDirection(@Direction int direction)
 	{
 		mAnimator.setDirection(direction);
 	}
@@ -375,7 +431,43 @@ public class EasyRecyclerView extends RecyclerView
 	public void setAnimationDuration(int duration)
 	{
 		mAdapter.setAnimationDuration(duration);
-		mAnimator.setAnimationDuration(duration);
+		mAnimator.setRemoveDuration(duration);
+		mAnimator.setAddDuration(duration);
+		mAnimator.setMoveDuration(duration);
+		mAnimator.setChangeDuration(duration);
+	}
+
+	/**
+	 * Set the interpolator to be used when animating cards as they enter EasyRecyclerView.
+	 *
+	 * @param interpolator {@link Interpolator}
+	 */
+	@SuppressWarnings("unused")
+	public void setCardAddInterpolator(Interpolator interpolator)
+	{
+		mAnimator.setAddInterpolator(interpolator);
+	}
+
+	/**
+	 * Set the interpolator to be used when animating cards as they leave EasyRecyclerView.
+	 *
+	 * @param interpolator {@link Interpolator}
+	 */
+	@SuppressWarnings("unused")
+	public void setCardRemoveInterpolator(Interpolator interpolator)
+	{
+		mAnimator.setRemoveInterpolator(interpolator);
+	}
+
+	/**
+	 * Set the interpolator to be used when animating cards as they move within EasyRecyclerView.
+	 *
+	 * @param interpolator {@link Interpolator}
+	 */
+	@SuppressWarnings("unused")
+	public void setCardMoveInterpolator(Interpolator interpolator)
+	{
+		mAnimator.setMoveInterpolator(interpolator);
 	}
 
 	/**
@@ -434,7 +526,7 @@ public class EasyRecyclerView extends RecyclerView
 	 * @param items list of items to add
 	 */
 	@SuppressWarnings("unused")
-	public void addItems(ArrayList<Object> items)
+	public void addItems(ArrayList<?> items)
 	{
 		mAdapter.addItems(items);
 	}
@@ -448,6 +540,8 @@ public class EasyRecyclerView extends RecyclerView
 	@SuppressWarnings("unused")
 	public void addItemAt(Object item, int index)
 	{
+		if(index < 0){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
 		mAdapter.addItemAt(item, index);
 	}
 
@@ -459,6 +553,8 @@ public class EasyRecyclerView extends RecyclerView
 	@SuppressWarnings("unused")
 	public void removeItem(int index)
 	{
+		if(index < 0){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
 		mAdapter.removeItem(index);
 	}
 
@@ -473,6 +569,47 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
+	 * Get item at specified index in EasyRecyclerView.
+	 *
+	 * @param index index in list
+	 * @return item
+	 */
+	@SuppressWarnings("unused")
+	public Object getItem(int index)
+	{
+		if(index < 0){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
+		return mAdapter.getItem(index);
+	}
+
+	/**
+	 * Get count number of items starting at a specified index.
+	 *
+	 * @param startIndex start index of items to get
+	 * @param count number of items to return
+	 * @return list of items
+	 */
+	@SuppressWarnings("unused")
+	public ArrayList<Object> getItems(int startIndex, int count)
+	{
+		if(startIndex < 0){throw new IndexOutOfBoundsException();}
+		if((startIndex + count) >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
+		return mAdapter.getItems(startIndex, count);
+	}
+
+	/**
+	 * Get all items in EasyRecyclerView.
+	 * Returned list may be empty if there are no items in the view.
+	 *
+	 * @return list of all items
+	 */
+	@SuppressWarnings("unused")
+	public ArrayList<Object> getItems()
+	{
+		return mAdapter.getItems();
+	}
+
+	/**
 	 * Get the number of items currently in EasyRecyclerView.
 	 *
 	 * @return number of items
@@ -481,5 +618,16 @@ public class EasyRecyclerView extends RecyclerView
 	public int getItemCount()
 	{
 		return mAdapter.getItemCount();
+	}
+
+	/**
+	 * Get the index of an item if it is within EasyRecyclerView's data set.
+	 *
+	 * @return number of items
+	 */
+	@SuppressWarnings("unused")
+	public int indexOf(Object item)
+	{
+		return mAdapter.indexOf(item);
 	}
 }

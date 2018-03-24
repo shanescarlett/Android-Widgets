@@ -1,11 +1,12 @@
 package net.scarlettsystems.android;
 
 import android.graphics.Color;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +19,7 @@ import com.thedeanda.lorem.LoremIpsum;
 
 import net.scarlettsystems.android.widget.EasyRecyclerView;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class EasyRecyclerViewDemo extends AppCompatActivity
@@ -40,8 +42,9 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		/* Find the view */
 		easyRecyclerView = findViewById(R.id.easy_recycler_view);
 
-		/* Set the view of items via layout resource. It is also possible to specify the view through
-		configuring the OnCreateItemViewListener. */
+		/* Set the view of items via layout resource. It is also possible to specify the view
+		through	configuring the OnCreateItemViewListener and programmatically creating a view
+		each time it is requested. */
 		easyRecyclerView.setItemLayoutResource(R.layout.card_sample);
 
 		/* Specify the binding procedure for each item. */
@@ -61,11 +64,15 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		});
 
 		/* Configure a layout manager to customise the layout of EasyRecyclerView's items.
-		An explicit or custom LayoutManager can be used as well. */
+		An explicit set of a custom LayoutManager is also possible. */
 		easyRecyclerView.setLayoutManager(1, EasyRecyclerView.VERTICAL, false, false);
 
 		/* Set up some animation parameters.*/
-		easyRecyclerView.setCardEnterDirection(EasyRecyclerView.EAST);
+		easyRecyclerView.setCardDirection(EasyRecyclerView.EAST);
+		easyRecyclerView.setAnimationDuration(400);
+		easyRecyclerView.setCardAddInterpolator(new DecelerateInterpolator(2));
+		easyRecyclerView.setCardRemoveInterpolator(new AccelerateInterpolator(2));
+		easyRecyclerView.setCardMoveInterpolator(new AccelerateDecelerateInterpolator());
 		easyRecyclerView.setAnimationStagger(64);
 
 		/* Do something when user clicks on an item. */
@@ -74,24 +81,17 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 			@Override
 			public void OnItemClick(View v, Object object)
 			{
-				Toast.makeText(getBaseContext(), "You clicked on an item.", Toast.LENGTH_SHORT).show();
+				Toast
+					.makeText(getBaseContext(),
+							"You clicked item #"
+									+ Integer.toString(easyRecyclerView.indexOf(object) + 1),
+							Toast.LENGTH_SHORT)
+					.show();
 			}
 		});
 
-		/* Create sample items and add them to EasyRecyclerView */
-		Handler handler = new Handler();
-		handler.postDelayed(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				for(int c = 0; c < 10; c++)
-				{
-					easyRecyclerView.addItem(new SampleObject());
-				}
-			}
-		}, 1000);
-
+		/* Create sample item and add to EasyRecyclerView */
+		easyRecyclerView.addItem(new SampleObject());
 	}
 
 	private void configureButtons()
@@ -102,6 +102,17 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 			public void onClick(View v)
 			{
 				easyRecyclerView.addItem(new SampleObject());
+			}
+		});
+
+		findViewById(R.id.add_five).setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				ArrayList<SampleObject> objects = new ArrayList<>();
+				for(int c = 0; c < 5; c++){objects.add(new SampleObject());}
+				easyRecyclerView.addItems(objects);
 			}
 		});
 
@@ -118,6 +129,15 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 				{
 					Toast.makeText(getBaseContext(), "There are no items to remove.", Toast.LENGTH_SHORT).show();
 				}
+			}
+		});
+
+		findViewById(R.id.clear).setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				easyRecyclerView.removeAll();
 			}
 		});
 	}

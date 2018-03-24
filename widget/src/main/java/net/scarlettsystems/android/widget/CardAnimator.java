@@ -11,6 +11,8 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -32,9 +34,12 @@ public class CardAnimator extends SimpleItemAnimator
 
 	private float mInterpolationFactor = 1.0f;
 	private int mStaggerDelay = 0;
-	private int mDuration;
-	private int mDirection;
+	private int mAddDirection, mRemoveDirection;
 	private int mTranslationAmount = 100;
+	private Interpolator mAddInterpolator = new LinearInterpolator();
+	private Interpolator mRemoveInterpolator = new LinearInterpolator();
+	private Interpolator mMoveInterpolator = new LinearInterpolator();
+	private Interpolator mChangeInterpolator = new LinearInterpolator();
 
 	private ArrayList<ViewHolder> mPendingRemovals = new ArrayList<>();
 	private ArrayList<ViewHolder> mPendingAdditions = new ArrayList<>();
@@ -305,8 +310,11 @@ public class CardAnimator extends SimpleItemAnimator
 		final View view = holder.itemView;
 		final ViewPropertyAnimator animation = view.animate();
 		mRemoveAnimations.add(holder);
-		configureAnimator(view, mDirection, DIRECTION_OUT);
-		animation.alpha(0).setDuration(getRemoveDuration()).setListener(
+		configureAnimator(view, mRemoveDirection, DIRECTION_OUT);
+		animation.alpha(0)
+				.setDuration(getRemoveDuration())
+				.setInterpolator(mRemoveInterpolator)
+				.setListener(
 				new AnimatorListenerAdapter()
 				{
 					@Override
@@ -344,11 +352,12 @@ public class CardAnimator extends SimpleItemAnimator
 	{
 		final View view = holder.itemView;
 		final ViewPropertyAnimator animation = view.animate();
-		//int firstVisibleItem = getFirstItemPosition(mRecyclerView.getLayoutManager());
-		//int startDelay = mStaggerDelay * Math.max(0, holder.getLayoutPosition() - firstVisibleItem);
 		mAddAnimations.add(holder);
-		configureAnimator(view, mDirection, DIRECTION_IN);
-		animation.alpha(1).setStartDelay(delay).setDuration(getAddDuration())
+		configureAnimator(view, mAddDirection, DIRECTION_IN);
+		animation.alpha(1)
+				.setStartDelay(delay)
+				.setDuration(getAddDuration())
+				.setInterpolator(mAddInterpolator)
 				.setListener(new AnimatorListenerAdapter()
 				{
 					@Override
@@ -418,7 +427,10 @@ public class CardAnimator extends SimpleItemAnimator
 		}
 		final ViewPropertyAnimator animation = view.animate();
 		mMoveAnimations.add(holder);
-		animation.setDuration(getMoveDuration()).setListener(new AnimatorListenerAdapter()
+		animation
+				.setDuration(getMoveDuration())
+				.setInterpolator(mMoveInterpolator)
+				.setListener(new AnimatorListenerAdapter()
 		{
 			@Override
 			public void onAnimationStart(Animator animator)
@@ -887,23 +899,40 @@ public class CardAnimator extends SimpleItemAnimator
 
 	public int getAnimationDuration()
 	{
-		return mDuration;
+		return mAddDirection;
 	}
 
 	public void setAnimationDuration(int value)
 	{
-		this.mDuration = value;
+		this.mAddDirection = value;
 	}
 
 	@Direction
-	public int getDirection()
+	public int getAddDirection()
 	{
-		return mDirection;
+		return mAddDirection;
+	}
+
+	@Direction
+	public int getRemoveDirection()
+	{
+		return mRemoveDirection;
 	}
 
 	public void setDirection(@Direction int direction)
 	{
-		this.mDirection = direction;
+		setAddDirection(direction);
+		setRemoveDirection(direction);
+	}
+
+	public void setAddDirection(@Direction int direction)
+	{
+		mAddDirection = direction;
+	}
+
+	public void setRemoveDirection(@Direction int direction)
+	{
+		mRemoveDirection = direction;
 	}
 
 	public int getTranslationAmount()
@@ -914,5 +943,20 @@ public class CardAnimator extends SimpleItemAnimator
 	public void setTranslationAmount(int value)
 	{
 		this.mTranslationAmount = value;
+	}
+
+	public void setAddInterpolator(Interpolator interpolator)
+	{
+		mAddInterpolator = interpolator;
+	}
+
+	public void setRemoveInterpolator(Interpolator interpolator)
+	{
+		mRemoveInterpolator = interpolator;
+	}
+
+	public void setMoveInterpolator(Interpolator interpolator)
+	{
+		mMoveInterpolator = interpolator;
 	}
 }
