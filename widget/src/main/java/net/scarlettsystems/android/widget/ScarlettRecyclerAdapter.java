@@ -1,14 +1,20 @@
 package net.scarlettsystems.android.widget;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.PorterDuff;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
@@ -16,6 +22,7 @@ import java.util.ArrayList;
 
 class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 {
+	private boolean mAnimationEnabled = true;
 	private ArrayList<Object> mDataset;
 	private OnItemClickListener mItemClickListener = null;
 	private ItemViewListener mItemViewListener = null;
@@ -25,6 +32,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	private int mDuration;
 	private float mInterpFactor;
 	private int mLoaderHeight = 100;
+	private int[] mLoaderPadding = {0, 0, 0, 0};
 
 	private static final int TYPE_ITEM = 0;
 	private static final int TYPE_FOOTER = -1;
@@ -53,10 +61,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		@Override
 		public void onClick(View v)
 		{
-			if(mItemClickListener == null)
-			{
-				return;
-			}
+			if(mItemClickListener == null){return;}
 			mItemClickListener.OnItemClick(v, mItem);
 		}
 
@@ -78,45 +83,31 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	private class LoaderHolder extends RecyclerView.ViewHolder
 	{
-		private Context mContext;
-		private RelativeLayout loaderContainer, view;
-		private boolean isOpen = false;
+		private View mView;
+		private RelativeLayout loaderContainer, paddingView;
+		private ProgressBar loader;
+		private boolean isShown = false;
 
 		LoaderHolder(View itemView)
 		{
 			super(itemView);
-			mContext = itemView.getContext();
-			view = itemView.findViewById(R.id.padding);
+			mView = itemView;
+			paddingView = itemView.findViewById(R.id.padding);
 			loaderContainer = itemView.findViewById(R.id.loader_container);
-			Helpers.setViewHeight(loaderContainer, 0);
-			StaggeredGridLayoutManager.LayoutParams layoutParams = new StaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-			layoutParams.setFullSpan(true);
-			itemView.setLayoutParams(layoutParams);
-			configureLoader();
-			configurePadding();
-		}
-
-		private void configurePadding()
-		{
-			if(Helpers.softButtonsExist(mContext))
+			loader = itemView.findViewById(R.id.loader);
+			Helpers.setViewHeight(loader, 0);
+			if(itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams)
 			{
-				Helpers.setViewHeight(view, Helpers.getNavBarHeight(mContext));
-			}
-			else
-			{
-				Helpers.setViewHeight(view, 0);
+				StaggeredGridLayoutManager.LayoutParams layoutParams = new StaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+				layoutParams.setFullSpan(true);
+				itemView.setLayoutParams(layoutParams);
 			}
 		}
 
-		private void configureLoader()
+		void showLoader()
 		{
-			ProgressBar loader = loaderContainer.findViewById(R.id.loader);
-			//loader.setIndeterminateTintList();
-		}
-
-		void openLoading()
-		{
-			if(!isOpen)
+			loaderContainer.setVisibility(View.VISIBLE);
+			if(mAnimationEnabled)
 			{
 				ValueAnimator animator = ValueAnimator.ofInt(0, mLoaderHeight);
 				animator.setDuration(mDuration);
@@ -124,38 +115,92 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
 				{
 					@Override
-					public void onAnimationUpdate(ValueAnimator valueAnimator)
+					public void onAnimationUpdate(ValueAnimator animator)
 					{
-						Helpers.setViewHeight(loaderContainer, (int) valueAnimator.getAnimatedValue());
-						//ScarlettHelpers.setViewHeight(root, view.getHeight() + (int)valueAnimator.getAnimatedValue());
-						//mRecyclerView.scrollToPosition(mRecyclerView.getLayoutManager().getItemCount() - 1);
+						int[] pad = {0, 0, 0, 0};
+						for (int c = 0; c < mLoaderPadding.length; c++)
+						{
+							pad[c] = Math.round((float)mLoaderPadding[c]
+									* animator.getAnimatedFraction());
+						}
+						Helpers.setViewHeight(loader, (int) animator.getAnimatedValue());
+						loaderContainer.setPadding(pad[0], pad[1], pad[2], pad[3]);
+						mRecyclerView.scrollToPosition(mRecyclerView.getLayoutManager().getItemCount() - 1);
 					}
 				});
 				animator.start();
-				isOpen = true;
+				isShown = true;
+			}
+			else
+			{
+				loaderContainer.setPadding(
+						mLoaderPadding[0],
+						mLoaderPadding[1],
+						mLoaderPadding[2],
+						mLoaderPadding[3]);
+				Helpers.setViewHeight(loader, mLoaderHeight);
 			}
 		}
 
-		void closeLoading()
+		void hideLoader()
 		{
-			if(isOpen)
+			if(mAnimationEnabled)
 			{
-				int size = loaderContainer.getHeight();
-				ValueAnimator animator = ValueAnimator.ofInt(size, 0);
+				final int[] initPad = {
+						loaderContainer.getPaddingLeft(),
+						loaderContainer.getPaddingTop(),
+						loaderContainer.getPaddingRight(),
+						loaderContainer.getPaddingBottom()};
+				ValueAnimator animator = ValueAnimator.ofInt(loader.getHeight(), 0);
 				animator.setDuration(mDuration);
 				animator.setInterpolator(new AccelerateInterpolator(mInterpFactor));
 				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
 				{
 					@Override
-					public void onAnimationUpdate(ValueAnimator valueAnimator)
+					public void onAnimationUpdate(ValueAnimator animator)
 					{
-						Helpers.setViewHeight(loaderContainer, (int) valueAnimator.getAnimatedValue());
-						//ScarlettHelpers.setViewHeight(root, view.getHeight() + (int)valueAnimator.getAnimatedValue());
+						int[] pad = {0,0,0,0};
+						for (int c = 0; c < mLoaderPadding.length; c++)
+						{
+							pad[c] = Math.round((float)initPad[c]
+									* (1f - animator.getAnimatedFraction()));
+						}
+						loaderContainer.setPadding(pad[0], pad[1], pad[2], pad[3]);
+						Helpers.setViewHeight(loader, (int) animator.getAnimatedValue());
+					}
+				});
+				animator.addListener(new AnimatorListenerAdapter()
+				{
+					@Override
+					public void onAnimationEnd(Animator animation)
+					{
+						loaderContainer.setVisibility(View.GONE);
 					}
 				});
 				animator.start();
-				isOpen = false;
+				isShown = false;
 			}
+			else
+			{
+				loaderContainer.setPadding(0,0,0,0);
+				Helpers.setViewHeight(loader, 0);
+				loaderContainer.setVisibility(View.GONE);
+			}
+		}
+
+		boolean isShown()
+		{
+			return isShown;
+		}
+
+		void setBottomPadding(int padding)
+		{
+			Helpers.setViewHeight(paddingView, padding);
+		}
+
+		void setLoaderColour(int colour)
+		{
+			loader.getIndeterminateDrawable().setColorFilter(colour, PorterDuff.Mode.SRC_IN);
 		}
 	}
 
@@ -184,6 +229,10 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	{
 		super.onAttachedToRecyclerView(recyclerView);
 		mRecyclerView = recyclerView;
+		View view = LayoutInflater
+				.from(recyclerView.getContext())
+				.inflate(R.layout.card_loader, null, false);
+		mLoaderHolder = new LoaderHolder(view);
 	}
 
 	@Override
@@ -207,12 +256,8 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			}
 			case TYPE_LOADER:
 			{
-				View view = LayoutInflater
-						.from(parent.getContext())
-						.inflate(R.layout.card_loader, parent, false);
-				LoaderHolder holder = new LoaderHolder(view);
-				mLoaderHolder = holder;
-				return holder;
+				parent.addView(mLoaderHolder.mView);
+				return mLoaderHolder;
 			}
 			default:
 			{
@@ -267,9 +312,9 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	Object getItem(int index)
 	{
-		if(index >= getItemCount())
+		if(index >= getItemCountProtected())
 		{
-			throw new IndexOutOfBoundsException("Index is out of bounds of EasyRecyclerView's items.");
+			throw new IndexOutOfBoundsException();
 		}
 		return mDataset.get(index);
 	}
@@ -281,7 +326,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	ArrayList<Object> getItems()
 	{
-		return new ArrayList<>(mDataset.subList(0, getItemCount()));
+		return new ArrayList<>(mDataset.subList(0, getItemCountProtected()));
 	}
 
 	@Override
@@ -292,6 +337,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	@Override
 	public int getItemCount()
+	{
+		return mDataset.size();
+	}
+
+	public int getItemCountProtected()
 	{
 		return mDataset.size() - 1;
 	}
@@ -313,47 +363,35 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	void addItem(Object item)
 	{
-		int size = mDataset.size();
-		mDataset.add(size - 1, item);
-		notifyItemInserted(getItemCount() - 1);
-		if(size==1)
-		{
-			mRecyclerView.scrollToPosition(0);
-		}
+		mDataset.add(getItemCountProtected(), item);
+		notifyItemInserted(getItemCountProtected());
 	}
 
 	void addItems(ArrayList<?> items)
 	{
-		for(int c = 0; c < items.size(); c++)
-		{
-			addItem(items.get(c));
-		}
-		notifyItemRangeInserted(getItemCount() - items.size(), items.size());
+//		for(int c = 0; c < items.size(); c++)
+//		{
+//			addItem(items.get(c));
+//		}
+		mDataset.addAll(getItemCountProtected(), items);
+		notifyItemRangeInserted(getItemCountProtected(), items.size());
 	}
 
 	void addItemAt(Object item, int index)
 	{
-		if(index >= getItemCount())
-		{
-			throw new IndexOutOfBoundsException("Index is out of bounds of EasyRecyclerView's items.");
-		}
 		mDataset.add(index, item);
 		notifyItemInserted(index);
 	}
 
 	void removeItem(int index)
 	{
-		if(index >= getItemCount())
-		{
-			throw new IndexOutOfBoundsException("Index is out of bounds of EasyRecyclerView's items.");
-		}
 		mDataset.remove(index);
 		notifyItemRemoved(index);
 	}
 
 	void removeAll()
 	{
-		int originalItemCount = getItemCount();
+		int originalItemCount = getItemCountProtected();
 		Object loader = mDataset.get(originalItemCount);
 		mDataset.clear();
 		mDataset.add(loader);
@@ -365,15 +403,54 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		return mDataset.indexOf(item);
 	}
 
-	void openLoading()
+	void showLoader()
 	{
 		if(mLoaderHolder == null){return;}
-		mLoaderHolder.openLoading();
+		mLoaderHolder.showLoader();
 	}
 
-	void closeLoading()
+	void hideLoader()
 	{
 		if(mLoaderHolder == null){return;}
-		mLoaderHolder.closeLoading();
+		mLoaderHolder.hideLoader();
+	}
+
+	boolean isLoaderShown()
+	{
+		if(mLoaderHolder == null){return false;}
+		return mLoaderHolder.isShown();
+	}
+
+	void setAnimationEnabled(boolean enabled)
+	{
+		mAnimationEnabled = enabled;
+	}
+
+	void setLoaderPadding(int padding)
+	{
+		for(int c = 0; c < mLoaderPadding.length; c++)
+		{
+			mLoaderPadding[c] = padding;
+		}
+	}
+
+	void setLoaderPaddingTop(int padding)
+	{
+		mLoaderPadding[1] = padding;
+	}
+
+	void setLoaderPaddingBottom(int padding)
+	{
+		mLoaderPadding[3] = padding;
+	}
+
+	void setLoaderColour(int colour)
+	{
+		mLoaderHolder.setLoaderColour(colour);
+	}
+
+	void setBottomPadding(int padding)
+	{
+		mLoaderHolder.setBottomPadding(padding);
 	}
 }

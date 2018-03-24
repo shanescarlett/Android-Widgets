@@ -199,7 +199,7 @@ public class FlexTextView extends LinearLayout
 		});
 	}
 
-	@SuppressLint("ClickableViewAccessibility")
+	@SuppressWarnings("all")
 	private void configureScrollView()
 	{
 		mScrollView = findViewById(R.id.scroll);

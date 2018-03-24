@@ -1,6 +1,7 @@
 package net.scarlettsystems.android;
 
 import android.graphics.Color;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -34,6 +35,7 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		setContentView(R.layout.activity_easy_recycler_view_demo);
 		setTitle("EasyRecyclerView Demo");
 		configureEasyRecyclerView();
+		configureAdvancedBehaviour();
 		configureButtons();
 	}
 
@@ -74,6 +76,9 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		easyRecyclerView.setCardRemoveInterpolator(new AccelerateInterpolator(2));
 		easyRecyclerView.setCardMoveInterpolator(new AccelerateDecelerateInterpolator());
 		easyRecyclerView.setAnimationStagger(64);
+		easyRecyclerView.setLoaderPaddingTop(50);
+		easyRecyclerView.setLoaderPaddingBottom(50);
+		easyRecyclerView.setLoaderColour(Color.GREEN);
 
 		/* Do something when user clicks on an item. */
 		easyRecyclerView.setOnItemClickListener(new EasyRecyclerView.OnItemClickListener()
@@ -94,6 +99,28 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		easyRecyclerView.addItem(new SampleObject());
 	}
 
+	private void configureAdvancedBehaviour()
+	{
+		/* Configure the EasyRecyclerView to load more items upon reaching the end. */
+		easyRecyclerView.setOnLoadRequestListener(new EasyRecyclerView.OnLoadRequestListener()
+		{
+			@Override
+			public void OnLoadRequest()
+			{
+				easyRecyclerView.showLoader();
+				new Handler().postDelayed(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						addItems(5);
+						easyRecyclerView.hideLoader();
+					}
+				}, 1000);
+			}
+		});
+	}
+
 	private void configureButtons()
 	{
 		findViewById(R.id.add).setOnClickListener(new View.OnClickListener()
@@ -110,9 +137,7 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 			@Override
 			public void onClick(View v)
 			{
-				ArrayList<SampleObject> objects = new ArrayList<>();
-				for(int c = 0; c < 5; c++){objects.add(new SampleObject());}
-				easyRecyclerView.addItems(objects);
+				addItems(5);
 			}
 		});
 
@@ -141,6 +166,18 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 			}
 		});
 	}
+
+	private void addItems(int numberOfItems)
+	{
+		ArrayList<SampleObject> objects = new ArrayList<>();
+		for(int c = 0; c < numberOfItems; c++)
+		{
+			SampleObject item = new SampleObject();
+			item.setText(Integer.toString(c) +". "+ item.getText());
+			objects.add(item);
+		}
+		easyRecyclerView.addItems(objects);
+	}
 }
 
 class SampleObject
@@ -149,7 +186,7 @@ class SampleObject
 	private String text;
 	private int colour;
 
-	public SampleObject()
+	SampleObject()
 	{
 		Lorem lorem = LoremIpsum.getInstance();
 		imageUrl = "https://picsum.photos/512/?random";
@@ -158,17 +195,19 @@ class SampleObject
 		colour = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
 	}
 
-	public String getImageUrl()
+	String getImageUrl()
 	{
 		return imageUrl;
 	}
 
-	public String getText()
+	String getText()
 	{
 		return text;
 	}
 
-	public int getColour()
+	void setText(String text){this.text = text;}
+
+	int getColour()
 	{
 		return colour;
 	}

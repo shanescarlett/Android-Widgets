@@ -9,12 +9,10 @@ import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
-import android.widget.Toast;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -38,16 +36,20 @@ public class EasyRecyclerView extends RecyclerView
 	//Members
 	private Context mContext;
 	private ScarlettRecyclerAdapter mAdapter;
-	private LayoutManager mLayoutManager;
 	private CardAnimator mAnimator;
 	private @LayoutRes Integer mItemLayoutResource = null;
+
+	//Callbacks
 	private OnItemClickListener mItemClickListener = null;
 	private OnCreateItemViewListener mOnCreateItemViewListener = null;
 	private OnBindItemViewListener mOnBindItemViewListener = null;
+	private OnLoadRequestListener mOnLoadRequestListener = null;
+
 	private int mAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 	private float mInterpolationFactor = 1.0f;
 	private boolean mEnabled = true;
 
+	@SuppressWarnings("WeakerAccess")
 	@IntDef({HORIZONTAL, VERTICAL})
 	@Retention(RetentionPolicy.SOURCE)
 	public @interface Orientation {}
@@ -55,6 +57,7 @@ public class EasyRecyclerView extends RecyclerView
 	public static final int HORIZONTAL = OrientationHelper.HORIZONTAL;
 	public static final int VERTICAL = OrientationHelper.VERTICAL;
 
+	@SuppressWarnings("WeakerAccess")
 	@IntDef({NORTH, SOUTH, EAST, WEST})
 	@Retention(RetentionPolicy.SOURCE)
 	public @interface Direction {}
@@ -133,6 +136,16 @@ public class EasyRecyclerView extends RecyclerView
 		void OnBindItemView(View view, Object item);
 	}
 
+	/**
+	 * Interface definition for a callback to be invoked when user reaches the end of the list of
+	 * items and more items should be loaded.
+	 *
+	 */
+	public interface OnLoadRequestListener
+	{
+		void OnLoadRequest();
+	}
+
 	//Internal Configuration Methods
 
 	private void init(Context context)
@@ -150,11 +163,25 @@ public class EasyRecyclerView extends RecyclerView
 		setItemViewCacheSize(20);
 		setDrawingCacheEnabled(true);
 		setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
+		addOnScrollListener(new OnScrollListener()
+		{
+			@Override
+			public void onScrollStateChanged(RecyclerView recyclerView, int newState)
+			{
+				if (!recyclerView.canScrollVertically(1) && newState == SCROLL_STATE_IDLE)
+				{
+					if(mOnLoadRequestListener == null){return;}
+					if(mAdapter.isLoaderShown()){return;}
+					mOnLoadRequestListener.OnLoadRequest();
+				}
+			}
+		});
 	}
 
 	private void configureAdapter()
 	{
 		mAdapter = new ScarlettRecyclerAdapter();
+		setAdapter(mAdapter);
 		mAdapter.setAnimationDuration(mAnimationDuration);
 		mAdapter.setInterpolationFactor(mInterpolationFactor);
 		mAdapter.setItemViewListener(new ScarlettRecyclerAdapter.ItemViewListener()
@@ -189,14 +216,11 @@ public class EasyRecyclerView extends RecyclerView
 				mItemClickListener.OnItemClick(v, object);
 			}
 		});
-
-		setAdapter(mAdapter);
 	}
 
 	private void configureLayoutManager()
 	{
-		mLayoutManager = new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false);
-		super.setLayoutManager(mLayoutManager);
+		super.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
 	}
 
 	private void configureAnimator()
@@ -205,7 +229,7 @@ public class EasyRecyclerView extends RecyclerView
 		setItemAnimator(mAnimator);
 	}
 
-	//External Settings Methods
+	//Public Settings Methods
 
 	//Callbacks
 	/**
@@ -243,6 +267,18 @@ public class EasyRecyclerView extends RecyclerView
 	public void setOnBindItemViewListener(OnBindItemViewListener l)
 	{
 		mOnBindItemViewListener = l;
+	}
+
+	/**
+	 * Set the callback to be invoked when user reaches the end of the list of items and more
+	 * items should be loaded.
+	 *
+	 * @param l {@link OnLoadRequestListener}
+	 */
+	@SuppressWarnings("unused")
+	public void setOnLoadRequestListener(OnLoadRequestListener l)
+	{
+		mOnLoadRequestListener = l;
 	}
 
 	//Behaviour
@@ -343,6 +379,95 @@ public class EasyRecyclerView extends RecyclerView
 		super.setLayoutManager(lm);
 	}
 
+	/**
+	 * Set the height of the loader that appears at the end of the list while additional items
+	 * are being loaded.
+	 *
+	 * @param height height in pixels
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderHeight(int height)
+	{
+		mAdapter.setLoaderHeight(height);
+	}
+
+	/**
+	 * Set the amount of padding around the loader.
+	 *
+	 * @param padding size in pixels
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderPadding(int padding)
+	{
+		mAdapter.setLoaderPadding(padding);
+	}
+
+	/**
+	 * Set the amount of padding above the loader.
+	 *
+	 * @param padding size in pixels
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderPaddingTop(int padding)
+	{
+		mAdapter.setLoaderPaddingTop(padding);
+	}
+
+	/**
+	 * Set the amount of padding below the loader.
+	 *
+	 * @param padding size in pixels
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderPaddingBottom(int padding)
+	{
+		mAdapter.setLoaderPaddingBottom(padding);
+	}
+
+	/**
+	 * Set the colour of the loader.
+	 *
+	 * @param colour colour as {@link android.support.annotation.ColorInt}
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderColour(int colour)
+	{
+		mAdapter.setLoaderColour(colour);
+	}
+
+	/**
+	 * Show the loader that appears at the end of the list.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void showLoader()
+	{
+		mAdapter.showLoader();
+	}
+
+	/**
+	 * Hide the loader that appears at the end of the list.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void hideLoader()
+	{
+		mAdapter.hideLoader();
+	}
+
+	/**
+	 * Set size of padding on the very bottom of the list. Useful when transparent soft navigation
+	 * buttons overlay EasyRecyclerView. The padding prevents the last item from being displayed
+	 * under the soft navigation buttons.
+	 *
+	 * @param padding size in pixels
+	 */
+	@SuppressWarnings("unused")
+	public void setBottomPadding(int padding)
+	{
+		mAdapter.setBottomPadding(padding);
+	}
+
 	//Animation
 	/**
 	 * Enable animations associated with EasyRecyclerView.
@@ -352,6 +477,7 @@ public class EasyRecyclerView extends RecyclerView
 	public void enableAnimation()
 	{
 		setItemAnimator(mAnimator);
+		mAdapter.setAnimationEnabled(true);
 	}
 
 	/**
@@ -362,6 +488,7 @@ public class EasyRecyclerView extends RecyclerView
 	public void disableAnimation()
 	{
 		setItemAnimator(null);
+		mAdapter.setAnimationEnabled(false);
 	}
 
 	/**
@@ -472,7 +599,7 @@ public class EasyRecyclerView extends RecyclerView
 
 	/**
 	 * Set duration of stagger (delay) between animating entrance of each item view.
-	 * Item animations are staggered sequentially from the first visible item.
+	 * Item animations are staggered sequentially from the first item being added.
 	 *
 	 * @param duration stagger duration in milliseconds
 	 */
@@ -497,18 +624,9 @@ public class EasyRecyclerView extends RecyclerView
 		mAnimator.setInterpolationFactor(factor);
 	}
 
-	/**
-	 * Set the height of the loader that appears at the end of the list while additional items
-	 * are being loaded
-	 *
-	 * @param height height in pixels
-	 */
-	@SuppressWarnings("unused")
-	public void setLoaderHeight(int height)
-	{
-		mAdapter.setLoaderHeight(height);
-	}
+	//State
 
+	//Data
 	/**
 	 * Add item to the end of the dataset displayed in EasyRecyclerView.
 	 *
@@ -541,7 +659,7 @@ public class EasyRecyclerView extends RecyclerView
 	public void addItemAt(Object item, int index)
 	{
 		if(index < 0){throw new IndexOutOfBoundsException();}
-		if(index >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCountProtected()){throw new IndexOutOfBoundsException();}
 		mAdapter.addItemAt(item, index);
 	}
 
@@ -554,7 +672,7 @@ public class EasyRecyclerView extends RecyclerView
 	public void removeItem(int index)
 	{
 		if(index < 0){throw new IndexOutOfBoundsException();}
-		if(index >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCountProtected()){throw new IndexOutOfBoundsException();}
 		mAdapter.removeItem(index);
 	}
 
@@ -578,7 +696,7 @@ public class EasyRecyclerView extends RecyclerView
 	public Object getItem(int index)
 	{
 		if(index < 0){throw new IndexOutOfBoundsException();}
-		if(index >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCountProtected()){throw new IndexOutOfBoundsException();}
 		return mAdapter.getItem(index);
 	}
 
@@ -593,7 +711,7 @@ public class EasyRecyclerView extends RecyclerView
 	public ArrayList<Object> getItems(int startIndex, int count)
 	{
 		if(startIndex < 0){throw new IndexOutOfBoundsException();}
-		if((startIndex + count) >= mAdapter.getItemCount()){throw new IndexOutOfBoundsException();}
+		if((startIndex + count) >= mAdapter.getItemCountProtected()){throw new IndexOutOfBoundsException();}
 		return mAdapter.getItems(startIndex, count);
 	}
 
@@ -617,7 +735,7 @@ public class EasyRecyclerView extends RecyclerView
 	@SuppressWarnings("unused")
 	public int getItemCount()
 	{
-		return mAdapter.getItemCount();
+		return mAdapter.getItemCountProtected();
 	}
 
 	/**
