@@ -34,7 +34,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
 
-    implementation('net.scarlettsystems.android:widget:0.1.4') { changing = true }
+    implementation('net.scarlettsystems.android:widget:0.1.5') { changing = true }
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
