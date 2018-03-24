@@ -3,7 +3,6 @@ package net.scarlettsystems.android.widget;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
@@ -50,7 +49,7 @@ public class FlexTextView extends LinearLayout
 	private final int DEF_BUT_MARGIN = Helpers.Dp2Pix(16, this.getContext());
 	private final int DEF_BUT_DIR = ANTI_CLOCKWISE;
 	private final int DEF_ANIM_TIME = getResources().getInteger(android.R.integer.config_mediumAnimTime);
-	private final float DEF_INTRP_FACTOR = 1.0f;
+	private final float DEF_INTERPOLATION_FACTOR = 1.0f;
 
 	//Elements
 	private TextView mTextView;
@@ -64,7 +63,7 @@ public class FlexTextView extends LinearLayout
 	private int mMode = DEF_MODE;
 	private int mMaxCollapsedLines = DEF_MAX_COL_LIN;
 	private int mAnimationDuration = DEF_ANIM_TIME;
-	private float mInterpolationFactor = DEF_INTRP_FACTOR;
+	private float mInterpolationFactor = DEF_INTERPOLATION_FACTOR;
 	private int mButtonDirection = DEF_BUT_DIR;
 
 	//Behaviour flags
@@ -127,7 +126,6 @@ public class FlexTextView extends LinearLayout
 		try
 		{
 			mTextView.setText(ta.getString(R.styleable.FlexTextView_ftv_text));
-			//mTextView.setTypeface(ta.getString(R.styleable.FlexTextView_fontFamily)
 			setMode(ta.getInt(R.styleable.FlexTextView_ftv_mode, DEF_MODE));
 			setEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_enabled, DEF_ENABLED));
 			setCollapseEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_collapsible, DEF_COLLAPSE_ENABLED));
@@ -506,13 +504,13 @@ public class FlexTextView extends LinearLayout
 	 */
 	private void animateTextChange(Runnable changeAction)
 	{
-		if(mAnimationsEnabled)
+		if(mAnimationsEnabled && mLayoutComplete)
 		{
 			fadeOutText(changeAction);
 		}
 		else
 		{
-			mHandler.post(changeAction);
+			changeAction.run();
 			refresh();
 		}
 	}

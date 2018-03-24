@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import com.thedeanda.lorem.LoremIpsum;
+
 import net.scarlettsystems.android.widget.FlexTextView;
 
 public class FlexTextViewDemo extends AppCompatActivity
@@ -24,6 +26,7 @@ public class FlexTextViewDemo extends AppCompatActivity
 		setTitle("FlexTextView Demo");
 		primaryColour = ContextCompat.getColor(getBaseContext(), R.color.colorPrimary);
 		flexTextView = findViewById(R.id.ftv);
+		flexTextView.setText(LoremIpsum.getInstance().getWords(25));
 
 		enabledButton = findViewById(R.id.enable);
 		animationsButton = findViewById(R.id.animation);
@@ -32,6 +35,7 @@ public class FlexTextViewDemo extends AppCompatActivity
 		collapsingButton = findViewById(R.id.collapsing);
 		scrollingButton = findViewById(R.id.scrolling);
 		resizingButton = findViewById(R.id.resizing);
+
 		configButtons();
 	}
 
@@ -82,7 +86,7 @@ public class FlexTextViewDemo extends AppCompatActivity
 			@Override
 			public void onClick(View view)
 			{
-				flexTextView.setText(flexTextView.getText() + "lorem ipsum dolor sit amet, consectetur adipiscing elit, ");
+				flexTextView.setText(flexTextView.getText() + LoremIpsum.getInstance().getWords(10));
 			}
 		});
 
@@ -91,13 +95,13 @@ public class FlexTextViewDemo extends AppCompatActivity
 			@Override
 			public void onClick(View view)
 			{
-				if(flexTextView.getText().length()<57)
+				if(flexTextView.getText().length()<100)
 				{
 					flexTextView.setText("");
 				}
 				else
 				{
-					flexTextView.setText(flexTextView.getText().toString().substring(0, flexTextView.getText().length() - 57));
+					flexTextView.setText(flexTextView.getText().toString().substring(0, flexTextView.getText().length() - 100));
 				}
 			}
 		});
