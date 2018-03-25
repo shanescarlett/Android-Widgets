@@ -1,14 +1,20 @@
-## FlexTextView
+# FlexTextView
 
 An adaptive text view widget focused on smooth animations between data changes and configurable truncation modes for long texts.
 
-### Benefits
+## Preview
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/shanescarlett/Android-Widgets/master/samples/FlexTextViewDemo.gif"/>
+</p>
+  
+## Benefits
 
 FlexTextView offers different modes to truncate long sequences of texts including
 * Collapsing mode where the view is collapsed to display a set number of lines and expanded by the user,
 * Scrolling mode where the view is sized to display a set number of lines and the user can scroll through.
 
-### Usage
+## Usage
 
 FlexTextView can be defined in an XML layout file such as:
 
