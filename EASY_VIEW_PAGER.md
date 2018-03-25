@@ -1,12 +1,18 @@
-## EasyViewPager
+# EasyViewPager
 
 A wrapper library for the ViewPager widget to simplify instantiation.
 
-### Benefits
+## Preview
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/shanescarlett/Android-Widgets/master/samples/EasyViewPagerDemo.gif"/>
+</p>
+
+## Benefits
 
 Create paged views quickly without the need to specify a Pager Adapter. A generic instance of the adapter is created and managed internally within the EasyViewPager instance. Adding and removing pages are facilitated by simple method calls on this instance, by passing in Views.
 
-### Usage
+## Usage
 
 EasyViewPager can be defined in an XML layout file such as:
 
