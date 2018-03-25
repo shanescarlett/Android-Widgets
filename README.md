@@ -2,6 +2,45 @@
 
 A selection of Android widgets (views) to simplify development.
 
+## Preview
+
+<table width="100%" align="center">
+    <tr>
+        <th width="33%">
+            <a href="../master/EASY_VIEW_PAGER.md">EasyViewPager</a>
+        </th>
+        <th width="33%">
+            <a href="../master/EASY_RECYCLER_VIEW.md">EasyRecyclerView</a>
+        </th>
+        <th width="33%">
+            <a href="../master/FLEX_TEXT_VIEW.md">FlexTextView</a>
+        </th>
+    </tr>
+    <tr>
+        <td>A wrapper library for the ViewPager widget to simplify instantiation.</td>
+        <td>A wrapper library for the RecyclerView widget to simplify instantiation.</td>
+        <td>An adaptive text view widget focused on smooth animations between data changes and configurable truncation modes
+            for long texts.</td>
+    </tr>
+    <tr>
+        <td>
+            <p align="center">
+                <img src="https://raw.githubusercontent.com/shanescarlett/Android-Widgets/master/samples/EasyViewPagerDemo.gif" />
+            </p>
+        </td>
+        <td>
+            <p align="center">
+                <img src="https://raw.githubusercontent.com/shanescarlett/Android-Widgets/master/samples/EasyRecyclerViewDemo.gif" />
+            </p>
+        </td>
+        <td>
+            <p align="center">
+                <img src="https://raw.githubusercontent.com/shanescarlett/Android-Widgets/master/samples/FlexTextViewDemo.gif" />
+            </p>
+        </td>
+    </tr>
+</table>
+
 ## Getting Started
 
 This library includes the EasyViewPager module, designed to automate implementation of the ViewPagerAdapter, with other functionalities.
