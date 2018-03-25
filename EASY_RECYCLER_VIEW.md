@@ -1,12 +1,18 @@
-## EasyRecyclerView
+# EasyRecyclerView
 
 A wrapper library for the RecyclerView widget to simplify instantiation.
 
-### Benefits
+# Preview
+
+<p align="center">
+    <img src="https://raw.githubusercontent.com/shanescarlett/Android-Widgets/master/samples/EasyRecyclerViewDemo.gif"/>
+</p>
+
+## Benefits
 
 Hides the implementation of the RecyclerView Adapter and simplifies the initialisation process.
 
-### Usage
+## Usage
 
 EasyViewPager can be defined in an XML layout file such as:
 
