@@ -26,7 +26,7 @@ import java.util.List;
  * @see android.support.v7.widget.DefaultItemAnimator
  */
 @SuppressWarnings("WeakerAccess")
-public class CardAnimator extends SimpleItemAnimator
+public class ScarlettItemAnimator extends SimpleItemAnimator
 {
 	private static final boolean DEBUG = false;
 

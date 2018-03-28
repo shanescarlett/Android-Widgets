@@ -31,44 +31,52 @@ RecyclerView.LayoutManager lm = new LinearLayoutManager(this);
 recycler.setLayoutManager(lm)
 ```
 
-The view of the item can be set by either setting a layout resource, or dynamically returning a View through the OnCreateItemViewListener. EasyRecyclerView will prefer inflating a layout from the resource set by setItemLayoutResource().
+The view of the item can be set by either setting a layout resource, or dynamically returning a View through the OnCreateItemViewListener. A routine to bind the item's data to the created view must also be set..
 
 ```Java
-recycler.setItemLayoutResource(R.layout.card);
-
-//OR
-
-recycler.setOnCreateItemViewListener(new EasyRecyclerView.OnCreateItemViewListener()
+easyRecyclerView.addOnCreateItemViewListener(ITEM_TYPE,
+        new EasyRecyclerView.OnCreateItemViewListener()
 {
-	@Override
-	public View OnCreateItemView()
-	{
-		return new View(getContext());
-	}
+    @Override
+    public View OnCreateItemView()
+    {
+        View view = new View(getContext());
+        return view;
+    }
+
+    @Override
+    public void OnBindItemView(View view, Object item)
+    {
+        //TODO: Do something to view.
+    }
 });
 ```
 
-To actually populate the view, the OnBindItemViewListener must be specified, else nothing will be done for the newly created view.
+OR
 
 ```Java
-recycler.setOnBindItemViewListener(new EasyRecyclerView.OnBindItemViewListener()
+easyRecyclerView.addOnBindItemViewListener(ITEM_TYPE,
+        R.layout.my_layout,
+        new EasyRecyclerView.OnBindItemViewListener()
 {
-	@Override
-	public void OnBindItemView(View view, Object item)
-	{
-		//Find Views
-		TextView titleView = view.findViewById(R.id.title);
-		TextView messageView = view.findViewById(R.id.message);
-		
-		//Get Data from Item
-		String message = ((MyItem)item).getMessage();
-		
-		//Set Data to Views
-		titleView.setText("Hello!");
-		messageView.setText(message);
-	}
+    @Override
+    public void OnBindItemView(View view, Object item)
+    {
+        //Find Views
+        TextView titleView = view.findViewById(R.id.title);
+        TextView messageView = view.findViewById(R.id.message);
+
+        //Get Data from Item
+        String message = ((MyItem)item).getMessage();
+
+        //Set Data to Views
+        titleView.setText("Hello!");
+        messageView.setText(message);
+    }
 });
 ```
+
+More than one type of item can be specified this way, through custom defined `ITEM_TYPE` codes. Different view layouts and binding routines can be specified for objects of the same type, depending on how they are required to be displayed in the list.
 
 Click actions on the items can be obtained through the click listener inteface:
 ```Java

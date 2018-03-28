@@ -2,9 +2,12 @@ package net.scarlettsystems.android;
 
 import android.graphics.Color;
 import android.os.Handler;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -25,6 +28,8 @@ import java.util.Random;
 
 public class EasyRecyclerViewDemo extends AppCompatActivity
 {
+	private static final int SAMPLE_TYPE = 0;
+	private static final int DIFFERENT_TYPE = 1;
 	private EasyRecyclerView easyRecyclerView;
 	private int counter = 0;
 
@@ -44,13 +49,12 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		/* Find the view */
 		easyRecyclerView = findViewById(R.id.easy_recycler_view);
 
-		/* Set the view of items via layout resource. It is also possible to specify the view
-		through	configuring the OnCreateItemViewListener and programmatically creating a view
-		each time it is requested. */
-		easyRecyclerView.setItemLayoutResource(R.layout.card_sample);
-
-		/* Specify the binding procedure for each item. */
-		easyRecyclerView.setOnBindItemViewListener(new EasyRecyclerView.OnBindItemViewListener()
+		/* Specify the binding procedure for each item and set the view of items via layout
+		resource. It is also possible to specify the view through configuring the
+		OnCreateItemViewListener and programmatically creating a view each time it is requested. */
+		easyRecyclerView.addOnBindItemViewListener(SAMPLE_TYPE,
+				R.layout.card_sample,
+				new EasyRecyclerView.OnBindItemViewListener()
 		{
 			@Override
 			public void OnBindItemView(View view, Object item)
@@ -58,6 +62,7 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 				SampleObject object = (SampleObject)item;
 				Glide.with(getBaseContext())
 						.load(object.getImageUrl())
+						.thumbnail(0.05f)
 						.apply(new RequestOptions().signature(new ObjectKey(String.valueOf(System.currentTimeMillis() + counter++))))
 						.into((ImageView)view.findViewById(R.id.picture));
 				((TextView)view.findViewById(R.id.text)).setText(object.getText());
@@ -70,18 +75,18 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		easyRecyclerView.setLayoutManager(1, EasyRecyclerView.VERTICAL, false, false);
 
 		/* Set up some animation parameters.*/
-		easyRecyclerView.setCardDirection(EasyRecyclerView.EAST);
+		easyRecyclerView.setItemDirection(EasyRecyclerView.EAST);
 		easyRecyclerView.setAnimationDuration(400);
-		easyRecyclerView.setCardAddInterpolator(new DecelerateInterpolator(2));
-		easyRecyclerView.setCardRemoveInterpolator(new AccelerateInterpolator(2));
-		easyRecyclerView.setCardMoveInterpolator(new AccelerateDecelerateInterpolator());
+		easyRecyclerView.setItemAddInterpolator(new DecelerateInterpolator(2));
+		easyRecyclerView.setItemRemoveInterpolator(new AccelerateInterpolator(2));
+		easyRecyclerView.setItemMoveInterpolator(new AccelerateDecelerateInterpolator());
 		easyRecyclerView.setAnimationStagger(64);
 		easyRecyclerView.setLoaderPaddingTop(50);
 		easyRecyclerView.setLoaderPaddingBottom(50);
 		easyRecyclerView.setLoaderColour(Color.GREEN);
 
 		/* Do something when user clicks on an item. */
-		easyRecyclerView.setOnItemClickListener(new EasyRecyclerView.OnItemClickListener()
+		easyRecyclerView.addOnItemClickListener(new EasyRecyclerView.OnItemClickListener()
 		{
 			@Override
 			public void OnItemClick(View v, Object object)
@@ -96,13 +101,13 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		});
 
 		/* Create sample item and add to EasyRecyclerView */
-		easyRecyclerView.addItem(new SampleObject());
+		easyRecyclerView.addItem(new SampleObject(), SAMPLE_TYPE);
 	}
 
 	private void configureAdvancedBehaviour()
 	{
 		/* Configure the EasyRecyclerView to load more items upon reaching the end. */
-		easyRecyclerView.setOnLoadRequestListener(new EasyRecyclerView.OnLoadRequestListener()
+		easyRecyclerView.addOnLoadRequestListener(new EasyRecyclerView.OnLoadRequestListener()
 		{
 			@Override
 			public void OnLoadRequest()
@@ -119,6 +124,37 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 				}, 1000);
 			}
 		});
+
+		/* Specify a different type of item to be displayed in the list. */
+		easyRecyclerView.addOnCreateItemViewListener(DIFFERENT_TYPE, new EasyRecyclerView.OnCreateItemViewListener()
+		{
+			@Override
+			public View OnCreateItemView()
+			{
+				CardView card = new CardView(getBaseContext());
+				TextView text = new TextView(getBaseContext());
+				ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
+						ViewGroup.LayoutParams.MATCH_PARENT,
+						ViewGroup.LayoutParams.WRAP_CONTENT);
+				card.setLayoutParams(lp);
+				ViewCompat.setElevation(card,10);
+				CardView.LayoutParams clp = new CardView.LayoutParams(
+						ViewGroup.LayoutParams.MATCH_PARENT,
+						ViewGroup.LayoutParams.MATCH_PARENT);
+				text.setPadding(20,20,20,20);
+				text.setLayoutParams(clp);
+				text.setTag("text");
+				card.addView(text);
+				return card;
+			}
+
+			@Override
+			public void OnBindItemView(View view, Object item)
+			{
+				((TextView)view.findViewWithTag("text"))
+						.setText(((DifferentObject)item).getText());
+			}
+		});
 	}
 
 	private void configureButtons()
@@ -128,7 +164,7 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 			@Override
 			public void onClick(View v)
 			{
-				easyRecyclerView.addItem(new SampleObject());
+				easyRecyclerView.addItem(new DifferentObject(), DIFFERENT_TYPE);
 			}
 		});
 
@@ -170,13 +206,14 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 	private void addItems(int numberOfItems)
 	{
 		ArrayList<SampleObject> objects = new ArrayList<>();
-		for(int c = 0; c < numberOfItems; c++)
+		for(int c = 0; c < numberOfItems - 1; c++)
 		{
 			SampleObject item = new SampleObject();
 			item.setText(Integer.toString(c) +". "+ item.getText());
 			objects.add(item);
 		}
-		easyRecyclerView.addItems(objects);
+		easyRecyclerView.addItems(objects, SAMPLE_TYPE);
+		easyRecyclerView.addItem(new DifferentObject(), DIFFERENT_TYPE);
 	}
 }
 
@@ -198,6 +235,32 @@ class SampleObject
 	String getImageUrl()
 	{
 		return imageUrl;
+	}
+
+	String getText()
+	{
+		return text;
+	}
+
+	void setText(String text){this.text = text;}
+
+	int getColour()
+	{
+		return colour;
+	}
+}
+
+class DifferentObject
+{
+	private String text;
+	private int colour;
+
+	DifferentObject()
+	{
+		Lorem lorem = LoremIpsum.getInstance();
+		text = lorem.getWords(24, 32);
+		Random rnd = new Random();
+		colour = Color.WHITE;
 	}
 
 	String getText()

@@ -36,17 +36,14 @@ public class EasyRecyclerView extends RecyclerView
 	//Members
 	private Context mContext;
 	private ScarlettRecyclerAdapter mAdapter;
-	private CardAnimator mAnimator;
-	private @LayoutRes Integer mItemLayoutResource = null;
+	private ScarlettItemAnimator mAnimator;
+
 
 	//Callbacks
-	private OnItemClickListener mItemClickListener = null;
-	private OnCreateItemViewListener mOnCreateItemViewListener = null;
-	private OnBindItemViewListener mOnBindItemViewListener = null;
-	private OnLoadRequestListener mOnLoadRequestListener = null;
+	private ArrayList<OnItemClickListener> mOnItemClickListeners = new ArrayList<>();
+	private ArrayList<OnLoadRequestListener> mOnLoadRequestListeners = new ArrayList<>();
 
 	private int mAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
-	private float mInterpolationFactor = 1.0f;
 	private boolean mEnabled = true;
 
 	@SuppressWarnings("WeakerAccess")
@@ -62,10 +59,14 @@ public class EasyRecyclerView extends RecyclerView
 	@Retention(RetentionPolicy.SOURCE)
 	public @interface Direction {}
 
-	public static final int NORTH = CardAnimator.NORTH;
-	public static final int SOUTH = CardAnimator.SOUTH;
-	public static final int EAST = CardAnimator.EAST;
-	public static final int WEST = CardAnimator.WEST;
+	public static final int NORTH = ScarlettItemAnimator.NORTH;
+	public static final int SOUTH = ScarlettItemAnimator.SOUTH;
+	public static final int EAST = ScarlettItemAnimator.EAST;
+	public static final int WEST = ScarlettItemAnimator.WEST;
+
+	private static final String EX_TYPE_CODE = "Type code must be a positive integer.";
+	private static final String EX_SPAN_COUNT = "Span count must be an integer larger than zero.";
+	private static final String EX_ORIENTATION = "Unrecognised orientation. Required: VERTICAL or HORIZONTAL.";
 
 	//Constructors
 	public EasyRecyclerView(Context context)
@@ -116,6 +117,16 @@ public class EasyRecyclerView extends RecyclerView
 		 * @return the item view to be displayed
 		 */
 		View OnCreateItemView();
+
+		/**
+		 * Called when the data needs to be bound to the item's view.
+		 * The necessary data should be read from
+		 * {@code item} and bound to {@code view}.
+		 *
+		 * @param view instantiated view of the item
+		 * @param item data object of the item
+		 */
+		void OnBindItemView(View view, Object item);
 	}
 
 	/**
@@ -170,9 +181,11 @@ public class EasyRecyclerView extends RecyclerView
 			{
 				if (!recyclerView.canScrollVertically(1) && newState == SCROLL_STATE_IDLE)
 				{
-					if(mOnLoadRequestListener == null){return;}
 					if(mAdapter.isLoaderShown()){return;}
-					mOnLoadRequestListener.OnLoadRequest();
+					for(OnLoadRequestListener l : mOnLoadRequestListeners)
+					{
+						l.OnLoadRequest();
+					}
 				}
 			}
 		});
@@ -183,37 +196,16 @@ public class EasyRecyclerView extends RecyclerView
 		mAdapter = new ScarlettRecyclerAdapter();
 		setAdapter(mAdapter);
 		mAdapter.setAnimationDuration(mAnimationDuration);
-		mAdapter.setInterpolationFactor(mInterpolationFactor);
-		mAdapter.setItemViewListener(new ScarlettRecyclerAdapter.ItemViewListener()
-		{
-			@Override
-			public View OnCreateItemView(ViewGroup parent)
-			{
-				if(mItemLayoutResource != null)
-				{
-					return LayoutInflater.from(mContext).inflate(mItemLayoutResource, parent, false);
-				}
-				if(mOnCreateItemViewListener == null)
-				{
-					throw new IllegalStateException("OnCreateItemViewListener must be set.");
-				}
-				return mOnCreateItemViewListener.OnCreateItemView();
-			}
-
-			@Override
-			public void OnBindItemView(View v, Object item)
-			{
-				mOnBindItemViewListener.OnBindItemView(v, item);
-			}
-		});
 		mAdapter.setOnItemClickListener(new ScarlettRecyclerAdapter.OnItemClickListener()
 		{
 			@Override
 			public void OnItemClick(View v, Object object)
 			{
-				if(mItemClickListener == null){return;}
 				if(!mEnabled){return;}
-				mItemClickListener.OnItemClick(v, object);
+				for(OnItemClickListener l : mOnItemClickListeners)
+				{
+					l.OnItemClick(v, object);
+				}
 			}
 		});
 	}
@@ -225,7 +217,7 @@ public class EasyRecyclerView extends RecyclerView
 
 	private void configureAnimator()
 	{
-		mAnimator = new CardAnimator();
+		mAnimator = new ScarlettItemAnimator();
 		setItemAnimator(mAnimator);
 	}
 
@@ -233,52 +225,115 @@ public class EasyRecyclerView extends RecyclerView
 
 	//Callbacks
 	/**
-	 * Set the callback to be invoked when an item within the EasyRecylclerView is clicked.
+	 * Add a listener to handle creation of the item view and subsequent binding of data, for a
+	 * user specified item of type {@code typeCode}.
+	 *
+	 * @param l {@link OnCreateItemViewListener}
+	 * @param typeCode type code of the item this listener should be invoked for
+	 */
+	@SuppressWarnings("unused")
+	public void addOnCreateItemViewListener(int typeCode, final OnCreateItemViewListener l)
+	{
+		if(typeCode < 0){throw new IllegalArgumentException(EX_TYPE_CODE);}
+		mAdapter.addOnItemViewListener(new ScarlettRecyclerAdapter.ItemViewListener()
+		{
+			@Override
+			public View OnCreateItemView(ViewGroup parent)
+			{
+				return l.OnCreateItemView();
+			}
+
+			@Override
+			public void OnBindItemView(View v, Object item)
+			{
+				l.OnBindItemView(v, item);
+			}
+		}, typeCode);
+	}
+
+	/**
+	 * Specify a view layout and add a listener to handle binding of data, for a
+	 * user specified item of type {@code typeCode}.
+	 *
+	 * @param l {@link OnBindItemViewListener}
+	 * @param typeCode type code of the item this listener should be invoked for
+	 */
+	@SuppressWarnings("unused")
+	public void addOnBindItemViewListener(int typeCode, @LayoutRes final int resId, final OnBindItemViewListener l)
+	{
+		if(typeCode < 0){throw new IllegalArgumentException(EX_TYPE_CODE);}
+		mAdapter.addOnItemViewListener(new ScarlettRecyclerAdapter.ItemViewListener()
+		{
+			@Override
+			public View OnCreateItemView(ViewGroup parent)
+			{
+				return LayoutInflater
+						.from(mContext)
+						.inflate(resId, parent, false);
+			}
+
+			@Override
+			public void OnBindItemView(View v, Object item)
+			{
+				l.OnBindItemView(v, item);
+			}
+		}, typeCode);
+	}
+
+	/**
+	 * Remove the listener related to an item code.
+	 *
+	 * @param typeCode user defined type code for which listener should be removed
+	 */
+	@SuppressWarnings("unused")
+	public void removeOnItemListener(int typeCode)
+	{
+		mAdapter.removeOnItemViewListener(typeCode);
+	}
+
+	/**
+	 * Add a callback to be invoked when user clicks on an item in EasyRecyclerView.
 	 *
 	 * @param l {@link OnItemClickListener}
 	 */
 	@SuppressWarnings("unused")
-	public void setOnItemClickListener(OnItemClickListener l)
+	public void addOnItemClickListener(OnItemClickListener l)
 	{
-		mItemClickListener = l;
+		mOnItemClickListeners.add(l);
 	}
 
 	/**
-	 * Set the callback to be invoked when an item's view is to be created.
+	 * Remove an on item click callback.
 	 *
-	 * <p>Note: This callback does not need to be set if a layout is already configured through
-	 * {@link EasyRecyclerView#setItemLayoutResource(int)}. EasyRecyclerVIew will prefer inflating
-	 * the view from the specified resource.
-	 *
-	 * @param l {@link OnCreateItemViewListener}
+	 * @param l {@link OnItemClickListener}
 	 */
 	@SuppressWarnings("unused")
-	public void setOnCreateItemViewListener(OnCreateItemViewListener l)
+	public void removeOnItemClickListener(OnItemClickListener l)
 	{
-		mOnCreateItemViewListener = l;
+		mOnItemClickListeners.remove(l);
 	}
 
 	/**
-	 * Set the callback to be invoked when an item's data is to be bound to its associated view.
-	 *
-	 * @param l {@link OnBindItemViewListener}
-	 */
-	@SuppressWarnings("unused")
-	public void setOnBindItemViewListener(OnBindItemViewListener l)
-	{
-		mOnBindItemViewListener = l;
-	}
-
-	/**
-	 * Set the callback to be invoked when user reaches the end of the list of items and more
+	 * Add a callback to be invoked when user reaches the end of the list of items and more
 	 * items should be loaded.
 	 *
 	 * @param l {@link OnLoadRequestListener}
 	 */
 	@SuppressWarnings("unused")
-	public void setOnLoadRequestListener(OnLoadRequestListener l)
+	public void addOnLoadRequestListener(OnLoadRequestListener l)
 	{
-		mOnLoadRequestListener = l;
+		mOnLoadRequestListeners.add(l);
+	}
+
+	/**
+	 * Remove an on load request callback.
+	 *
+	 * @param l {@link OnLoadRequestListener}
+	 */
+	@SuppressWarnings("unused")
+	public void removeOnLoadRequestListener(OnLoadRequestListener l)
+	{
+		mOnLoadRequestListeners.remove(l);
 	}
 
 	//Behaviour
@@ -314,20 +369,6 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	//Appearance
-	/**
-	 * Set the layout resource to be used to inflate each item's view.
-	 *
-	 * <p>Note: This callback does not need to be set if view creating is already configured through
-	 * {@link EasyRecyclerView#setOnCreateItemViewListener(OnCreateItemViewListener)}.
-	 * EasyRecyclerVIew will prefer inflating the view from the specified resource.
-	 *
-	 * @param resId layout resource to be used for item view creation
-	 */
-	@SuppressWarnings("unused")
-	public void setItemLayoutResource(@LayoutRes int resId)
-	{
-		mItemLayoutResource = resId;
-	}
 
 	/**
 	 * Set the layout manager for the EasyRecyclerView.
@@ -355,11 +396,11 @@ public class EasyRecyclerView extends RecyclerView
 		//Input validation
 		if(spanCount < 1)
 		{
-			throw new IllegalArgumentException("Span count should be larger than 1.");
+			throw new IllegalArgumentException(EX_SPAN_COUNT);
 		}
 		if(orientation != VERTICAL && orientation != HORIZONTAL)
 		{
-			throw new IllegalArgumentException("Unrecognised orientation. Required: VERTICAL or HORIZONTAL.");
+			throw new IllegalArgumentException(EX_ORIENTATION);
 		}
 		//Create manager
 		if(spanCount == 1)
@@ -506,34 +547,34 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
-	 * Set direction the card should enter from when being added.
+	 * Set direction the item should enter from when being added.
 	 *
 	 * @param direction animation direction
 	 */
 	@SuppressWarnings("unused")
-	public void setCardAddDirection(@Direction int direction)
+	public void setItemAddDirection(@Direction int direction)
 	{
 		mAnimator.setAddDirection(direction);
 	}
 
 	/**
-	 * Set direction the card should exit towards when being removed.
+	 * Set direction the item should exit towards when being removed.
 	 *
 	 * @param direction animation direction
 	 */
 	@SuppressWarnings("unused")
-	public void setCardRemoveDirection(@Direction int direction)
+	public void setItemRemoveDirection(@Direction int direction)
 	{
 		mAnimator.setRemoveDirection(direction);
 	}
 
 	/**
-	 * Set a single direction for both cards entering and exiting the view.
+	 * Set a single direction for both items entering and exiting the view.
 	 *
 	 * @param direction animation direction
 	 */
 	@SuppressWarnings("unused")
-	public void setCardDirection(@Direction int direction)
+	public void setItemDirection(@Direction int direction)
 	{
 		mAnimator.setDirection(direction);
 	}
@@ -544,7 +585,7 @@ public class EasyRecyclerView extends RecyclerView
 	 * @param distance translation distance in pixels
 	 */
 	@SuppressWarnings("unused")
-	public void setCardAnimationAmount(int distance)
+	public void setItemTranslationAmount(int distance)
 	{
 		mAnimator.setTranslationAmount(distance);
 	}
@@ -565,35 +606,48 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
-	 * Set the interpolator to be used when animating cards as they enter EasyRecyclerView.
+	 * Set the interpolator to be used when animating items as they enter EasyRecyclerView.
 	 *
 	 * @param interpolator {@link Interpolator}
 	 */
 	@SuppressWarnings("unused")
-	public void setCardAddInterpolator(Interpolator interpolator)
+	public void setItemAddInterpolator(Interpolator interpolator)
 	{
 		mAnimator.setAddInterpolator(interpolator);
 	}
 
 	/**
-	 * Set the interpolator to be used when animating cards as they leave EasyRecyclerView.
+	 * Set the interpolator to be used when animating items as they leave EasyRecyclerView.
 	 *
 	 * @param interpolator {@link Interpolator}
 	 */
 	@SuppressWarnings("unused")
-	public void setCardRemoveInterpolator(Interpolator interpolator)
+	public void setItemRemoveInterpolator(Interpolator interpolator)
 	{
 		mAnimator.setRemoveInterpolator(interpolator);
 	}
 
 	/**
-	 * Set the interpolator to be used when animating cards as they move within EasyRecyclerView.
+	 * Set the interpolator to be used when animating items as they move within EasyRecyclerView.
 	 *
 	 * @param interpolator {@link Interpolator}
 	 */
 	@SuppressWarnings("unused")
-	public void setCardMoveInterpolator(Interpolator interpolator)
+	public void setItemMoveInterpolator(Interpolator interpolator)
 	{
+		mAnimator.setMoveInterpolator(interpolator);
+	}
+
+	/**
+	 * Set the interpolator to be used in all item animations.
+	 *
+	 * @param interpolator {@link Interpolator}
+	 */
+	@SuppressWarnings("unused")
+	public void setItemInterpolator(Interpolator interpolator)
+	{
+		mAnimator.setAddInterpolator(interpolator);
+		mAnimator.setRemoveInterpolator(interpolator);
 		mAnimator.setMoveInterpolator(interpolator);
 	}
 
@@ -610,18 +664,37 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
-	 * Set the interpolation factor of animations associated with EasyRecyclerVIew.
+	 * Set the interpolator to be used when showing the loader in EasyRecyclerView.
 	 *
-	 * @param factor degree to which the animation should be eased.
-	 *               Setting factor to 1.0f produces an upside-down y=x^2 parabola.
-	 *               Increasing factor above 1.0f makes exaggerates the ease-out effect
-	 *               (i.e., it starts even faster and ends evens slower)
+	 * @param interpolator {@link Interpolator}
 	 */
 	@SuppressWarnings("unused")
-	public void setInterpolationFactor(float factor)
+	public void setLoaderShowInterpolator(Interpolator interpolator)
 	{
-		mAdapter.setInterpolationFactor(factor);
-		mAnimator.setInterpolationFactor(factor);
+		mAdapter.setLoaderShowInterpolator(interpolator);
+	}
+
+	/**
+	 * Set the interpolator to be used when hiding the loader in EasyRecyclerView.
+	 *
+	 * @param interpolator {@link Interpolator}
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderHideInterpolator(Interpolator interpolator)
+	{
+		mAdapter.setLoaderHideInterpolator(interpolator);
+	}
+
+	/**
+	 * Set the interpolator to be used in all loader animations.
+	 *
+	 * @param interpolator {@link Interpolator}
+	 */
+	@SuppressWarnings("unused")
+	public void setLoaderInterpolator(Interpolator interpolator)
+	{
+		mAdapter.setLoaderShowInterpolator(interpolator);
+		mAdapter.setLoaderHideInterpolator(interpolator);
 	}
 
 	//State
@@ -631,22 +704,26 @@ public class EasyRecyclerView extends RecyclerView
 	 * Add item to the end of the dataset displayed in EasyRecyclerView.
 	 *
 	 * @param item item to add
+	 * @param typeCode user defined type code of item
 	 */
 	@SuppressWarnings("unused")
-	public void addItem(Object item)
+	public void addItem(Object item, int typeCode)
 	{
-		mAdapter.addItem(item);
+		if(typeCode < 0){throw new IllegalArgumentException(EX_TYPE_CODE);}
+		mAdapter.addItem(item, typeCode);
 	}
 
 	/**
 	 * Add a set of items to the end of the dataset displayed in EasyRecyclerView.
 	 *
 	 * @param items list of items to add
+	 * @param typeCode user defined type code of item
 	 */
 	@SuppressWarnings("unused")
-	public void addItems(ArrayList<?> items)
+	public void addItems(ArrayList<?> items, int typeCode)
 	{
-		mAdapter.addItems(items);
+		if(typeCode < 0){throw new IllegalArgumentException(EX_TYPE_CODE);}
+		mAdapter.addItems(items, typeCode);
 	}
 
 	/**
@@ -654,13 +731,15 @@ public class EasyRecyclerView extends RecyclerView
 	 *
 	 * @param item item to add
 	 * @param index destination index
+	 * @param typeCode user defined type code of item
 	 */
 	@SuppressWarnings("unused")
-	public void addItemAt(Object item, int index)
+	public void addItemAt(Object item, int index, int typeCode)
 	{
 		if(index < 0){throw new IndexOutOfBoundsException();}
 		if(index >= mAdapter.getItemCountProtected()){throw new IndexOutOfBoundsException();}
-		mAdapter.addItemAt(item, index);
+		if(typeCode < 0){throw new IllegalArgumentException(EX_TYPE_CODE);}
+		mAdapter.addItemAt(item, index, typeCode);
 	}
 
 	/**

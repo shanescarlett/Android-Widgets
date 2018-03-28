@@ -3,18 +3,14 @@ package net.scarlettsystems.android.widget;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.content.res.ColorStateList;
 import android.graphics.PorterDuff;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
@@ -23,24 +19,24 @@ import java.util.ArrayList;
 class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 {
 	private boolean mAnimationEnabled = true;
-	private ArrayList<Object> mDataset;
+	private ArrayList<Object> mDataset = new ArrayList<>();
+	private ArrayList<Integer> mTypeset = new ArrayList<>();
 	private OnItemClickListener mItemClickListener = null;
-	private ItemViewListener mItemViewListener = null;
+	private ArrayList<ItemViewListener> mItemViewListeners = new ArrayList<>();
+	private ArrayList<Integer> mItemTypes = new ArrayList<>();
 	private RecyclerView mRecyclerView;
 	private LoaderHolder mLoaderHolder;
+	private Interpolator mLoaderShowInterpolator = new LinearInterpolator();
+	private Interpolator mLoaderHideInterpolator = new LinearInterpolator();
 
 	private int mDuration;
-	private float mInterpFactor;
 	private int mLoaderHeight = 100;
 	private int[] mLoaderPadding = {0, 0, 0, 0};
 
-	private static final int TYPE_ITEM = 0;
-	private static final int TYPE_FOOTER = -1;
-	private static final int TYPE_LOADER = -2;
+	private static final int TYPE_LOADER = -1;
 
 	ScarlettRecyclerAdapter()
 	{
-		mDataset = new ArrayList<>();
 		mDataset.add(new LoaderObject());
 	}
 
@@ -111,7 +107,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			{
 				ValueAnimator animator = ValueAnimator.ofInt(0, mLoaderHeight);
 				animator.setDuration(mDuration);
-				animator.setInterpolator(new DecelerateInterpolator(mInterpFactor));
+				animator.setInterpolator(mLoaderShowInterpolator);
 				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
 				{
 					@Override
@@ -153,7 +149,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 						loaderContainer.getPaddingBottom()};
 				ValueAnimator animator = ValueAnimator.ofInt(loader.getHeight(), 0);
 				animator.setDuration(mDuration);
-				animator.setInterpolator(new AccelerateInterpolator(mInterpFactor));
+				animator.setInterpolator(mLoaderHideInterpolator);
 				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
 				{
 					@Override
@@ -238,31 +234,25 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	@Override
 	public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
 	{
-		switch(viewType)
+		if(viewType == TYPE_LOADER)
 		{
-			case TYPE_ITEM:
+			parent.addView(mLoaderHolder.mView);
+			return mLoaderHolder;
+		}
+		else if(viewType >= 0)
+		{
+			View view = mItemViewListeners
+					.get(mItemTypes.indexOf(viewType))
+					.OnCreateItemView(parent);
+			if(view == null)
 			{
-				View view;
-				if(mItemViewListener == null)
-				{
-					throw new IllegalStateException("OnCreateItemViewListener must be set.");
-				}
-				view = mItemViewListener.OnCreateItemView(parent);
-				if(view == null)
-				{
-					throw new IllegalArgumentException("OnCreateItemView must return a view.");
-				}
-				return new ItemHolder(view);
+				throw new IllegalArgumentException("OnCreateItemView must return a view.");
 			}
-			case TYPE_LOADER:
-			{
-				parent.addView(mLoaderHolder.mView);
-				return mLoaderHolder;
-			}
-			default:
-			{
-				throw new IllegalArgumentException();
-			}
+			return new ItemHolder(view);
+		}
+		else
+		{
+			throw new IllegalArgumentException();
 		}
 
 	}
@@ -274,12 +264,9 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		{
 			ItemHolder h = (ItemHolder)vh;
 			h.setItem(mDataset.get(position));
-			mItemViewListener
+			mItemViewListeners
+					.get(mItemTypes.indexOf(mTypeset.get(position)))
 					.OnBindItemView(h.getView(), h.getItem());
-		}
-		else if(vh instanceof LoaderHolder)
-		{
-			LoaderHolder holder = (LoaderHolder)vh;
 		}
 	}
 
@@ -290,19 +277,23 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		mItemClickListener = l;
 	}
 
-	void setItemViewListener(ItemViewListener l)
+	void addOnItemViewListener(ItemViewListener l, int typeCode)
 	{
-		mItemViewListener = l;
+		mItemViewListeners.add(l);
+		mItemTypes.add(typeCode);
+	}
+
+	void removeOnItemViewListener(int typeCode)
+	{
+		int index = mItemTypes.indexOf(typeCode);
+		if(index < 0){return;}
+		mItemViewListeners.remove(index);
+		mItemTypes.remove(index);
 	}
 
 	void setAnimationDuration(int value)
 	{
 		mDuration = value;
-	}
-
-	void setInterpolationFactor(float value)
-	{
-		mInterpFactor = value;
 	}
 
 	void setLoaderHeight(int value)
@@ -355,37 +346,39 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		}
 		else
 		{
-			return TYPE_ITEM;
+			int index = mTypeset.get(position);
+			if(index == -1){throw new IllegalStateException();}
+			return index;
 		}
 	}
 
 	//Control Methods
 
-	void addItem(Object item)
+	void addItem(Object item, int typeCode)
 	{
 		mDataset.add(getItemCountProtected(), item);
+		mTypeset.add(typeCode);
 		notifyItemInserted(getItemCountProtected());
 	}
 
-	void addItems(ArrayList<?> items)
+	void addItems(ArrayList<?> items, int typeCode)
 	{
-//		for(int c = 0; c < items.size(); c++)
-//		{
-//			addItem(items.get(c));
-//		}
 		mDataset.addAll(getItemCountProtected(), items);
+		for(int c = 0; c < items.size(); c++){mTypeset.add(typeCode);}
 		notifyItemRangeInserted(getItemCountProtected(), items.size());
 	}
 
-	void addItemAt(Object item, int index)
+	void addItemAt(Object item, int index, int typeCode)
 	{
 		mDataset.add(index, item);
+		mTypeset.add(index, typeCode);
 		notifyItemInserted(index);
 	}
 
 	void removeItem(int index)
 	{
 		mDataset.remove(index);
+		mTypeset.remove(index);
 		notifyItemRemoved(index);
 	}
 
@@ -394,6 +387,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		int originalItemCount = getItemCountProtected();
 		Object loader = mDataset.get(originalItemCount);
 		mDataset.clear();
+		mTypeset.clear();
 		mDataset.add(loader);
 		notifyItemRangeRemoved(0, originalItemCount);
 	}
@@ -447,6 +441,16 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	void setLoaderColour(int colour)
 	{
 		mLoaderHolder.setLoaderColour(colour);
+	}
+
+	void setLoaderShowInterpolator(Interpolator interpolator)
+	{
+		mLoaderShowInterpolator = interpolator;
+	}
+
+	void setLoaderHideInterpolator(Interpolator interpolator)
+	{
+		mLoaderHideInterpolator = interpolator;
 	}
 
 	void setBottomPadding(int padding)
