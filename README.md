@@ -48,7 +48,7 @@ This library includes the EasyViewPager module, designed to automate implementat
 ### Prerequisites
 
 Android development environment with the jcenter repository added in the project's build.gradle file.
-A target SDK of 15 or higher.
+A target SDK of 14 or higher.
 
 ```
 repositories {
@@ -62,7 +62,7 @@ Add the following dependency in the app's build.gradle file:
 
 ```
 dependencies {
-    compile 'net.scarlettsystems.android:widget:0.1.6'
+    compile 'net.scarlettsystems.android:widget:0.1.7'
 }
 ```
 
@@ -98,7 +98,7 @@ FlexTextView offers different modes to truncate long sequences of texts includin
 
 ## Versioning
 
-Current version: 0.1.6
+Current version: [ ![Download](https://api.bintray.com/packages/shanescarlett/net.scarlettsystems.android/widget/images/download.svg) ](https://bintray.com/shanescarlett/net.scarlettsystems.android/widget/_latestVersion/link)
 
 ## Authors
 

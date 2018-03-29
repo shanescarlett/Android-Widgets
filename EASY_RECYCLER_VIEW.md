@@ -77,6 +77,7 @@ easyRecyclerView.addOnBindItemViewListener(ITEM_TYPE,
 ```
 
 More than one type of item can be specified this way, through custom defined `ITEM_TYPE` codes. Different view layouts and binding routines can be specified for objects of the same type, depending on how they are required to be displayed in the list.
+For example, you may want items to be shown one way, but in-line advertisements to have a different set of data and appearance in the list.
 
 Click actions on the items can be obtained through the click listener inteface:
 ```Java
