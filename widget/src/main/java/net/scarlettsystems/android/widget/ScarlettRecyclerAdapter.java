@@ -227,7 +227,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		mRecyclerView = recyclerView;
 		View view = LayoutInflater
 				.from(recyclerView.getContext())
-				.inflate(R.layout.net_scarlettsystems_android_widget_flextextview_card_loader, null, false);
+				.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, null, false);
 		mLoaderHolder = new LoaderHolder(view);
 	}
 
