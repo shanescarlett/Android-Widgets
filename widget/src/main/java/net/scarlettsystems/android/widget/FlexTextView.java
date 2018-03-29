@@ -148,7 +148,7 @@ public class FlexTextView extends LinearLayout
 	 */
 	private void initialise()
 	{
-		inflate(getContext(), R.layout.flex_text_view, this);
+		inflate(getContext(), R.layout.net_scarlettsystems_android_widget_flextextview, this);
 		configureTextView();
 		configureButton();
 		configureScrollView();
@@ -173,7 +173,7 @@ public class FlexTextView extends LinearLayout
 
 	private void configureTextView()
 	{
-		mTextView = findViewById(R.id.text);
+		mTextView = findViewById(R.id.net_scarlettsystems_android_widget_flextextview_text);
 		mTextView.setOnClickListener(new OnClickListener()
 		{
 			@Override
@@ -186,7 +186,7 @@ public class FlexTextView extends LinearLayout
 
 	private void configureButton()
 	{
-		mButtonView = findViewById(R.id.button);
+		mButtonView = findViewById(R.id.net_scarlettsystems_android_widget_flextextview_button);
 		mButtonView.setOnClickListener(new OnClickListener()
 		{
 			@Override
@@ -200,7 +200,7 @@ public class FlexTextView extends LinearLayout
 	@SuppressWarnings("all")
 	private void configureScrollView()
 	{
-		mScrollView = findViewById(R.id.scroll);
+		mScrollView = findViewById(R.id.net_scarlettsystems_android_widget_flextextview_scroll);
 		mScrollView.setOnTouchListener(new View.OnTouchListener()
 		{
 			@Override

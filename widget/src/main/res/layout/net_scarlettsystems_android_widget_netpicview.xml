@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:orientation="vertical"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent">
+
+	<ProgressBar
+		android:id="@+id/net_scarlettsystems_android_widget_netpicview_loader"
+		android:layout_width="match_parent"
+		android:layout_height="0dp"
+		android:layout_centerInParent="true"
+		android:visibility="gone"/>
+
+	<ProgressBar
+		android:id="@+id/net_scarlettsystems_android_widget_netpicview_progress"
+		style="?android:attr/progressBarStyleHorizontal"
+		android:layout_width="match_parent"
+		android:layout_height="4dp"
+		android:layout_alignParentBottom="true"
+		android:max="100"
+		android:progress="0"/>
+
+</RelativeLayout>

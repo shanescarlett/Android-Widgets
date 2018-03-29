@@ -5,13 +5,13 @@
 			  android:orientation="vertical">
 
 	<ScrollView
-		android:id="@+id/scroll"
+		android:id="@+id/net_scarlettsystems_android_widget_flextextview_scroll"
 		android:layout_width="match_parent"
 		android:layout_height="0dp"
 		android:scrollbars="none">
 
 		<TextView
-			android:id="@+id/text"
+			android:id="@+id/net_scarlettsystems_android_widget_flextextview_text"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:cursorVisible="false"/>
@@ -20,7 +20,7 @@
 
 
 	<ImageView
-		android:id="@+id/button"
+		android:id="@+id/net_scarlettsystems_android_widget_flextextview_button"
 		android:layout_width="match_parent"
 		android:layout_height="0dp"
 		android:src="@drawable/net_scarlettsystems_android_ic_chevron_down"

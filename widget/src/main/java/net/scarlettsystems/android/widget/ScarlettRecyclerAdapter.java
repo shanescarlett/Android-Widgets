@@ -88,9 +88,9 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		{
 			super(itemView);
 			mView = itemView;
-			paddingView = itemView.findViewById(R.id.padding);
-			loaderContainer = itemView.findViewById(R.id.loader_container);
-			loader = itemView.findViewById(R.id.loader);
+			paddingView = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_padding);
+			loaderContainer = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_loader_container);
+			loader = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_loader);
 			Helpers.setViewHeight(loader, 0);
 			if(itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams)
 			{
@@ -227,7 +227,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		mRecyclerView = recyclerView;
 		View view = LayoutInflater
 				.from(recyclerView.getContext())
-				.inflate(R.layout.card_loader, null, false);
+				.inflate(R.layout.net_scarlettsystems_android_widget_flextextview_card_loader, null, false);
 		mLoaderHolder = new LoaderHolder(view);
 	}
 

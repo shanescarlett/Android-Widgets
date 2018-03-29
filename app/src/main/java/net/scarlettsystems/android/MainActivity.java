@@ -43,5 +43,15 @@ public class MainActivity extends AppCompatActivity
 				startActivity(intent);
 			}
 		});
+
+		findViewById(R.id.button_npv).setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Intent intent = new Intent(getBaseContext(), NetPicViewDemo.class);
+				startActivity(intent);
+			}
+		});
 	}
 }

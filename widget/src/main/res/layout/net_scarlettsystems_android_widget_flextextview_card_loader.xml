@@ -3,22 +3,22 @@
 			  android:orientation="vertical"
 			  android:layout_width="match_parent"
 			  android:layout_height="wrap_content"
-			  android:id="@+id/root"
+			  android:id="@+id/net_scarlettsystems_android_widget_cardloader_root"
 	android:gravity="center">
 	<RelativeLayout
-		android:id="@+id/loader_container"
+		android:id="@+id/net_scarlettsystems_android_widget_cardloader_loader_container"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:gravity="center"
 		android:padding="0px">
 		<ProgressBar
-			android:id="@+id/loader"
+			android:id="@+id/net_scarlettsystems_android_widget_cardloader_loader"
 			android:layout_width="match_parent"
 			android:layout_height="56dp"
 			android:indeterminate="true"/>
 	</RelativeLayout>
 	<RelativeLayout
-		android:id="@+id/padding"
+		android:id="@+id/net_scarlettsystems_android_widget_cardloader_padding"
 		android:layout_width="match_parent"
 		android:layout_height="1dp"
 		android:orientation="horizontal"></RelativeLayout>
