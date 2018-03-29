@@ -23,7 +23,7 @@ FlexTextView can be defined in an XML layout file such as:
 		android:id="@+id/flex_text_view"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		app:ftv_text="Hello World!"
+		android:text="Hello World!"
 		app:ftv_mode="scrolling"
 		app:ftv_button_rotation="none"/>
 ```

@@ -6,7 +6,6 @@
 
 	<declare-styleable name="FlexTextView">
 		<attr name="ftv_text" format="string"/>
-		<attr name="ftv_max_collapsed_lines" format="integer"/>
 		<attr name="ftv_enabled" format="boolean"/>
 		<attr name="ftv_collapsible" format="boolean"/>
 		<attr name="ftv_animation_enabled" format="boolean"/>

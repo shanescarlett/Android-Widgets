@@ -7,15 +7,16 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
-import android.support.annotation.StringRes;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +26,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,13 +37,12 @@ import java.lang.annotation.RetentionPolicy;
  * @author Shane Scarlett
  * @version 1.0.0
  */
-public class FlexTextView extends LinearLayout
+public class FlexTextView extends AppCompatTextView
 {
 	//Defaults
 	private final int DEF_MODE = COLLAPSING;
 	private final boolean DEF_ENABLED = true;
 	private final boolean DEF_COLLAPSE_ENABLED = true;
-	private final int DEF_MAX_COL_LIN = 4;
 	private final int DEF_BUT_RES = R.drawable.net_scarlettsystems_android_ic_chevron_down;
 	private final int DEF_BUT_SIZE = Helpers.Dp2Pix(24, this.getContext());
 	private final int DEF_BUT_MARGIN = Helpers.Dp2Pix(16, this.getContext());
@@ -52,7 +51,7 @@ public class FlexTextView extends LinearLayout
 	private final float DEF_INTERPOLATION_FACTOR = 1.0f;
 
 	//Elements
-	private TextView mTextView;
+	private LinearLayout mView;
 	private ImageView mButtonView;
 	private ScrollView mScrollView;
 
@@ -61,7 +60,7 @@ public class FlexTextView extends LinearLayout
 
 	//Settings
 	private int mMode = DEF_MODE;
-	private int mMaxCollapsedLines = DEF_MAX_COL_LIN;
+	private int mMaxCollapsedLines;
 	private int mAnimationDuration = DEF_ANIM_TIME;
 	private float mInterpolationFactor = DEF_INTERPOLATION_FACTOR;
 	private int mButtonDirection = DEF_BUT_DIR;
@@ -125,12 +124,10 @@ public class FlexTextView extends LinearLayout
 		TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.FlexTextView, 0, 0);
 		try
 		{
-			mTextView.setText(ta.getString(R.styleable.FlexTextView_ftv_text));
 			setMode(ta.getInt(R.styleable.FlexTextView_ftv_mode, DEF_MODE));
 			setEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_enabled, DEF_ENABLED));
 			setCollapseEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_collapsible, DEF_COLLAPSE_ENABLED));
 			setAnimationsEnabled(ta.getBoolean(R.styleable.FlexTextView_ftv_animation_enabled, DEF_ENABLED));
-			setMaxLines(ta.getInt(R.styleable.FlexTextView_ftv_max_collapsed_lines, DEF_MAX_COL_LIN));
 			setButtonResource(ta.getResourceId(R.styleable.FlexTextView_ftv_button_image, DEF_BUT_RES));
 			setButtonSize(ta.getDimensionPixelSize(R.styleable.FlexTextView_ftv_button_size, DEF_BUT_SIZE));
 			setButtonMargin(ta.getDimensionPixelSize(R.styleable.FlexTextView_ftv_button_margin, DEF_BUT_MARGIN));
@@ -148,7 +145,9 @@ public class FlexTextView extends LinearLayout
 	 */
 	private void initialise()
 	{
-		inflate(getContext(), R.layout.net_scarlettsystems_android_widget_flextextview, this);
+		mView = (LinearLayout) LayoutInflater
+				.from(getContext())
+				.inflate(R.layout.net_scarlettsystems_android_widget_flextextview, (ViewGroup)getParent(), false);
 		configureTextView();
 		configureButton();
 		configureScrollView();
@@ -171,10 +170,48 @@ public class FlexTextView extends LinearLayout
 		});
 	}
 
+	@Override
+	protected void onAttachedToWindow()
+	{
+		super.onAttachedToWindow();
+		//Intercept when being attached externally
+		if(getParent() != mScrollView)
+		{
+			//Configure wrapper view
+			ViewGroup parent = (ViewGroup)getParent();
+			mView.setLayoutParams(getLayoutParams());
+			this.setLayoutParams(new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+			int index = parent.indexOfChild(this);
+			//Switch out views
+			parent.removeViewAt(index);
+			mScrollView.addView(this);
+			parent.addView(mView, index);
+		}
+	}
+
+	@Override
+	public void invalidate()
+	{
+		super.invalidate();
+		this.post(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				refresh();
+			}
+		});
+	}
+
+	@Override
+	public void requestLayout()
+	{
+		super.requestLayout();
+	}
+
 	private void configureTextView()
 	{
-		mTextView = findViewById(R.id.net_scarlettsystems_android_widget_flextextview_text);
-		mTextView.setOnClickListener(new OnClickListener()
+		setOnClickListener(new OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
@@ -184,9 +221,23 @@ public class FlexTextView extends LinearLayout
 		});
 	}
 
+	@Override
+	public void setText(final CharSequence text, final BufferType type)
+	{
+		animateTextChange(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				FlexTextView.super.setText(text, type);
+			}
+		});
+
+	}
+
 	private void configureButton()
 	{
-		mButtonView = findViewById(R.id.net_scarlettsystems_android_widget_flextextview_button);
+		mButtonView = mView.findViewById(R.id.net_scarlettsystems_android_widget_flextextview_button);
 		mButtonView.setOnClickListener(new OnClickListener()
 		{
 			@Override
@@ -200,7 +251,7 @@ public class FlexTextView extends LinearLayout
 	@SuppressWarnings("all")
 	private void configureScrollView()
 	{
-		mScrollView = findViewById(R.id.net_scarlettsystems_android_widget_flextextview_scroll);
+		mScrollView = mView.findViewById(R.id.net_scarlettsystems_android_widget_flextextview_scroll);
 		mScrollView.setOnTouchListener(new View.OnTouchListener()
 		{
 			@Override
@@ -289,10 +340,10 @@ public class FlexTextView extends LinearLayout
 	 */
 	private int getCollapsedTextHeight()
 	{
-		int collapsedHeight = (mTextView.getLineHeight() * (mMaxCollapsedLines - 1))
+		int collapsedHeight = (this.getLineHeight() * (mMaxCollapsedLines - 1))
 				+ getLastLineHeight()
-				+ mTextView.getPaddingTop()
-				+ mTextView.getPaddingBottom();
+				+ this.getPaddingTop()
+				+ this.getPaddingBottom();
 		return Math.min(collapsedHeight, getExpandedTextHeight());
 	}
 
@@ -303,7 +354,7 @@ public class FlexTextView extends LinearLayout
 	 */
 	private int getExpandedTextHeight()
 	{
-		return ((mTextView.getLineCount()-1) * mTextView.getLineHeight()) + getLastLineHeight();
+		return ((this.getLineCount()-1) * this.getLineHeight()) + getLastLineHeight();
 	}
 
 	/**
@@ -313,7 +364,7 @@ public class FlexTextView extends LinearLayout
 	 */
 	private int getLastLineHeight()
 	{
-		return Math.round(mTextView.getPaint().getFontMetrics().bottom - mTextView.getPaint().getFontMetrics().top);
+		return Math.round(this.getPaint().getFontMetrics().bottom - this.getPaint().getFontMetrics().top);
 	}
 
 	/**
@@ -522,8 +573,8 @@ public class FlexTextView extends LinearLayout
 	 */
 	private void fadeOutText(final Runnable changeAction)
 	{
-		mTextView.animate().cancel();
-		mTextView.animate().alpha(0.0f)
+		this.animate().cancel();
+		this.animate().alpha(0.0f)
 				.setDuration(mAnimationDuration)
 				.setInterpolator(new AccelerateInterpolator(mInterpolationFactor))
 				.setListener(new AnimatorListenerAdapter()
@@ -551,7 +602,7 @@ public class FlexTextView extends LinearLayout
 	 */
 	private void fadeInText()
 	{
-		mTextView.animate().alpha(1.0f)
+		this.animate().alpha(1.0f)
 				.setDuration(mAnimationDuration)
 				.setInterpolator(new DecelerateInterpolator(mInterpolationFactor))
 				.setListener(null)
@@ -693,12 +744,12 @@ public class FlexTextView extends LinearLayout
 		switch(mMode)
 		{
 			case COLLAPSING:
-				mTextView.setMaxLines(Integer.MAX_VALUE);
+				super.setMaxLines(Integer.MAX_VALUE);
 				mScrollEnabled = false;
 				mScrollView.setVerticalScrollBarEnabled(false);
 				break;
 			case SCROLLING:
-				mTextView.setMaxLines(Integer.MAX_VALUE);
+				super.setMaxLines(Integer.MAX_VALUE);
 				mScrollEnabled = true;
 				mScrollView.setVerticalScrollBarEnabled(true);
 				break;
@@ -720,6 +771,7 @@ public class FlexTextView extends LinearLayout
 	 * @param value number of lines to display when collapsed
 	 */
 	@SuppressWarnings("unused")
+	@Override
 	public void setMaxLines(int value)
 	{
 		if(value < 1)
@@ -727,238 +779,6 @@ public class FlexTextView extends LinearLayout
 			throw new IllegalArgumentException("Max collapsed lines cannot be fewer than 1.");
 		}
 		mMaxCollapsedLines = value;
-	}
-
-	/**
-	 * Return the text that FlexTextView is displaying.
-	 *
-	 * @return CharSequence
-	 * @see TextView#getText()
-	 */
-	@SuppressWarnings("unused")
-	public CharSequence getText()
-	{
-		return mTextView.getText();
-	}
-
-	/**
-	 * Set the text that FlexTextView is displaying.
-	 *
-	 * @param text text to be displayed
-	 * @see TextView#setText(CharSequence)
-	 */
-	@SuppressWarnings("unused")
-	public void setText(final CharSequence text)
-	{
-		animateTextChange(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				mTextView.setText(text);
-			}
-		});
-	}
-
-	/**
-	 * Set the text that FlexTextView is displaying.
-	 *
-	 * @param text text to be displayed
-	 * @param type a {@link TextView.BufferType} which defines whether the text is stored as a static text, styleable/spannable text, or editable text
-	 * @see TextView#setText(CharSequence, TextView.BufferType)
-	 */
-	@SuppressWarnings("unused")
-	public void setText(final CharSequence text, final TextView.BufferType type)
-	{
-		animateTextChange(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				mTextView.setText(text, type);
-			}
-		});
-	}
-
-	/**
-	 * Set the text that FlexTextView is displaying.
-	 *
-	 * @param text char array to be displayed
-	 * @param start start index in the char array
-	 * @param len length of char count after start
-	 * @see TextView#setText(char[], int, int)
-	 */
-	@SuppressWarnings("unused")
-	public void setText(final char[] text, final int start, final int len)
-	{
-		animateTextChange(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				mTextView.setText(text, start, len);
-			}
-		});
-	}
-
-	/**
-	 * Set the text that FlexTextView is displaying.
-	 *
-	 * @param resId the resource identifier of the string resource to be displayed
-	 * @see TextView#setText(int)
-	 */
-	@SuppressWarnings("unused")
-	public void setText(@StringRes final int resId)
-	{
-		animateTextChange(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				mTextView.setText(resId);
-			}
-		});
-	}
-
-	/**
-	 * Set the text that FlexTextView is displaying.
-	 *
-	 * @param resId the resource identifier of the string resource to be displayed
-	 * @param type a {@link TextView.BufferType} which defines whether the text is stored as a static text, styleable/spannable text, or editable text
-	 * @see TextView#setText(int, TextView.BufferType)
-	 */
-	@SuppressWarnings("unused")
-	public void setText(@StringRes final int resId, final TextView.BufferType type)
-	{
-		animateTextChange(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				mTextView.setText(resId, type);
-			}
-		});
-	}
-
-	/**
-	 * Get the size of the text displayed in the view.
-	 *
-	 * @return size of text in pixels
-	 * @see TextView#getTextSize()
-	 */
-	@SuppressWarnings("unused")
-	public float getTextSize()
-	{
-		return mTextView.getTextSize();
-	}
-
-	/**
-	 * Set the default text size to the given value, interpreted as "scaled pixel" units.
-	 *
-	 * @param size scaled pixel size
-	 * @see TextView#setTextSize(float)
-	 */
-	@SuppressWarnings("unused")
-	public void setTextSize(float size)
-	{
-		mTextView.setTextSize(size);
-		refresh();
-	}
-
-	/**
-	 * Set the default text size to a given unit and value.
-	 * See {@link android.util.TypedValue} for the possible dimension units.
-	 *
-	 * @param unit desired dimension unit
-	 * @param size size in the given units
-	 * @see TextView#setTextSize(int, float)
-	 */
-	@SuppressWarnings("unused")
-	public void setTextSize(int unit, float size)
-	{
-		mTextView.setTextSize(unit, size);
-		refresh();
-	}
-
-	/**
-	 * Set the typeface and style in which the text should be displayed.
-	 *
-	 * @param tf desired typeface
-	 * @see TextView#setTypeface(Typeface)
-	 */
-	@SuppressWarnings("unused")
-	public void setTypeface(Typeface tf)
-	{
-		mTextView.setTypeface(tf);
-		refresh();
-	}
-
-	/**
-	 * Sets the typeface and style in which the text should be displayed,
-	 * and turns on the fake bold and italic bits in the Paint if the Typeface
-	 * that you provided does not have all the bits in the style that you specified.
-	 *
-	 * @param tf desired typeface
-	 * @param style desired style
-	 * @see TextView#setTypeface(Typeface, int)
-	 */
-	@SuppressWarnings("unused")
-	public void setTypeface(Typeface tf, int style)
-	{
-		mTextView.setTypeface(tf, style);
-		refresh();
-	}
-
-	/**
-	 * Leave enough room for ascenders and descenders instead of using the font ascent
-	 * and descent strictly. (Normally true).
-	 *
-	 * @param includeFontPadding include font padding
-	 * @see TextView#setIncludeFontPadding(boolean)
-	 */
-	@SuppressWarnings("unused")
-	public void setIncludeFontPadding(boolean includeFontPadding)
-	{
-		mTextView.setIncludeFontPadding(includeFontPadding);
-		refresh();
-	}
-
-	/**
-	 * Gets the text colours for the different states (normal, selected, focused) of the TextView.
-	 *
-	 * @return ColorStateList
-	 * @see TextView#getTextColors()
-	 */
-	@SuppressWarnings("unused")
-	public ColorStateList getTextColors()
-	{
-		return mTextView.getTextColors();
-	}
-
-	/**
-	 * Set the text colour for all the states (normal, selected, focused) to be this color.
-	 *
-	 * @param colour color value in the form 0xAARRGGBB. Do not pass a resource ID.
-	 *               To get a color value from a resource ID,
-	 *               call {@link android.support.v4.content.ContextCompat#getColor(Context, int)}
-	 * @see TextView#setTextColor(int)
-	 */
-	@SuppressWarnings("unused")
-	public void setTextColor(@ColorInt int colour)
-	{
-		mTextView.setTextColor(colour);
-	}
-
-	/**
-	 * Set the text colour
-	 *
-	 * @param colours color state list to set
-	 * @see TextView#setTextColor(ColorStateList)
-	 */
-	@SuppressWarnings("unused")
-	public void setTextColor(ColorStateList colours)
-	{
-		mTextView.setTextColor(colours);
 	}
 
 	//Button
@@ -982,7 +802,7 @@ public class FlexTextView extends LinearLayout
 	@SuppressWarnings("unused")
 	public void setButtonMargin(int margin)
 	{
-		((LayoutParams)mButtonView.getLayoutParams()).topMargin = margin;
+		((LinearLayout.LayoutParams)mButtonView.getLayoutParams()).topMargin = margin;
 	}
 
 	/**

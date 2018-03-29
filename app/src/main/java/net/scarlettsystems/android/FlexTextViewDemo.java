@@ -4,6 +4,8 @@ import android.graphics.Color;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextView;
 
@@ -26,7 +28,6 @@ public class FlexTextViewDemo extends AppCompatActivity
 		setTitle("FlexTextView Demo");
 		primaryColour = ContextCompat.getColor(getBaseContext(), R.color.colorPrimary);
 		flexTextView = findViewById(R.id.ftv);
-		flexTextView.setText(LoremIpsum.getInstance().getWords(25));
 
 		enabledButton = findViewById(R.id.enable);
 		animationsButton = findViewById(R.id.animation);
@@ -86,7 +87,7 @@ public class FlexTextViewDemo extends AppCompatActivity
 			@Override
 			public void onClick(View view)
 			{
-				flexTextView.setText(flexTextView.getText() + LoremIpsum.getInstance().getWords(10));
+				flexTextView.setText(flexTextView.getText() + LoremIpsum.getInstance().getWords(20));
 			}
 		});
 
@@ -135,10 +136,12 @@ public class FlexTextViewDemo extends AppCompatActivity
 			@Override
 			public void onClick(View view)
 			{
-				flexTextView.setMode(FlexTextView.RESIZING);
-				collapsingButton.setBackgroundColor(Color.GRAY);
-				scrollingButton.setBackgroundColor(Color.GRAY);
-				resizingButton.setBackgroundColor(primaryColour);
+				//Unimplemented
+				//flexTextView.setMode(FlexTextView.RESIZING);
+				//flexTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, flexTextView.getTextSize() + 1);
+				//collapsingButton.setBackgroundColor(Color.GRAY);
+				//scrollingButton.setBackgroundColor(Color.GRAY);
+				//resizingButton.setBackgroundColor(primaryColour);
 			}
 		});
 	}
