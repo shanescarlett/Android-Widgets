@@ -6,6 +6,8 @@ import android.animation.ValueAnimator;
 import android.graphics.PorterDuff;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +24,8 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	private ArrayList<Object> mDataset = new ArrayList<>();
 	private ArrayList<Integer> mTypeset = new ArrayList<>();
 	private OnItemClickListener mItemClickListener = null;
-	private ArrayList<ItemViewListener> mItemViewListeners = new ArrayList<>();
-	private ArrayList<Integer> mItemTypes = new ArrayList<>();
+	private SparseArray<ItemViewListener> mItemViewListeners = new SparseArray<>();
+	private ItemViewListener mErrorListener;
 	private RecyclerView mRecyclerView;
 	private LoaderHolder mLoaderHolder;
 	private Interpolator mLoaderShowInterpolator = new LinearInterpolator();
@@ -38,6 +40,21 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	ScarlettRecyclerAdapter()
 	{
 		mDataset.add(new LoaderObject());
+		mErrorListener = new ItemViewListener()
+		{
+			@Override
+			public View OnCreateItemView(ViewGroup parent)
+			{
+				Log.e("EasyRecyclerView","View request for unrecognised item. Set OnCreateItemView or layout resource for this item type.");
+				return new View(parent.getContext());
+			}
+
+			@Override
+			public void OnBindItemView(View v, Object item)
+			{
+				Log.e("EasyRecyclerView","Bind request for unrecognised item. Set OnBindItemView for this item type.");
+			}
+		};
 	}
 
 	//Holder Classes
@@ -242,7 +259,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		else if(viewType >= 0)
 		{
 			View view = mItemViewListeners
-					.get(mItemTypes.indexOf(viewType))
+					.get(viewType, mErrorListener)
 					.OnCreateItemView(parent);
 			if(view == null)
 			{
@@ -265,7 +282,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			ItemHolder h = (ItemHolder)vh;
 			h.setItem(mDataset.get(position));
 			mItemViewListeners
-					.get(mItemTypes.indexOf(mTypeset.get(position)))
+					.get(mTypeset.get(position), mErrorListener)
 					.OnBindItemView(h.getView(), h.getItem());
 		}
 	}
@@ -279,16 +296,12 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	void addOnItemViewListener(ItemViewListener l, int typeCode)
 	{
-		mItemViewListeners.add(l);
-		mItemTypes.add(typeCode);
+		mItemViewListeners.append(typeCode, l);
 	}
 
 	void removeOnItemViewListener(int typeCode)
 	{
-		int index = mItemTypes.indexOf(typeCode);
-		if(index < 0){return;}
-		mItemViewListeners.remove(index);
-		mItemTypes.remove(index);
+		mItemViewListeners.remove(typeCode);
 	}
 
 	void setAnimationDuration(int value)

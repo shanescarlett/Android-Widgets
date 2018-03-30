@@ -62,8 +62,17 @@ Add the following dependency in the app's build.gradle file:
 
 ```
 dependencies {
-    compile 'net.scarlettsystems.android:widget:0.1.8'
+    compile 'net.scarlettsystems.android:widget:0.1.9'
 }
+```
+
+### ProGuard
+
+If you are using ProGuard, add the following options to the module's `proguard-rules.pro` file:
+
+```
+-dontwarn okhttp3.**
+-dontwarn okio.**
 ```
 
 ## EasyViewPager
