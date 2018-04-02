@@ -52,6 +52,14 @@ import okio.Source;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
+/**
+ * An ImageView with added functionality for displaying image loading progress, using the Glide
+ * image loading library. Typical use-case for downloading large, full-size images. Note that for
+ * smaller UI elements, it is usually better design to not display loading animations.
+ *
+ * @author Shane Scarlett
+ * @version 1.0.0
+ */
 public class NetPicView extends AppCompatImageView
 {
 	private RelativeLayout mView;
@@ -359,42 +367,98 @@ public class NetPicView extends AppCompatImageView
 		runOnFinish();
 	}
 
+	/**
+	 * Add listener to be invoked when image is being loaded.
+	 *
+	 * @param l {@link OnLoadListener}
+	 */
+	@SuppressWarnings("unused")
 	public void addOnLoadListener(OnLoadListener l)
 	{
 		mOnLoadListeners.add(l);
 	}
 
+	/**
+	 * Remove specified listener.
+	 *
+	 * @param l {@link OnLoadListener}
+	 */
+	@SuppressWarnings("unused")
 	public void removeOnLoadListener(OnLoadListener l)
 	{
 		mOnLoadListeners.remove(l);
 	}
 
+	/**
+	 * Get all listeners currently set.
+	 *
+	 * @return {@link ArrayList} of current {@link OnLoadListener} objects
+	 */
+	@SuppressWarnings("unused")
 	public ArrayList<OnLoadListener> getOnLoadListeners()
 	{
 		return mOnLoadListeners;
 	}
 
+	/**
+	 * Set the animation duration of loader.
+	 *
+	 * @param duration duration in milliseconds
+	 */
+	@SuppressWarnings("unused")
 	public void setLoaderAnimationDuration(int duration)
 	{
 		mLoaderAnimationDuration = duration;
 	}
 
+	/**
+	 * Set the colour of the spinning indeterminate loader shown behind the image before it is
+	 * loaded.
+	 *
+	 * @param colour colour as {@link ColorInt}
+	 */
+	@SuppressWarnings("unused")
 	public void setLoaderColour(@ColorInt int colour)
 	{
 		mLoader.getIndeterminateDrawable().setColorFilter(colour, PorterDuff.Mode.SRC_IN);
 	}
 
+	/**
+	 * Set the colour of the progress bar that indicates the image's loaded state.
+	 *
+	 * @param colour colour as {@link ColorInt}
+	 */
+	@SuppressWarnings("unused")
 	public void setProgressColour(@ColorInt int colour)
 	{
 		mProgress.getProgressDrawable().setColorFilter(colour, PorterDuff.Mode.SRC_IN);
 	}
 
+	/**
+	 * Start load of image from specified URL using no extra options.
+	 *
+	 * <p>Note: In order for the progress to be displayed correctly, the address given should be of
+	 * the raw image file ending in .jpg, .gif, etc.
+	 *
+	 * @param url address of image to load
+	 */
+	@SuppressWarnings("unused")
 	public void load(String url)
 	{
 		if (url == null) return;
 		glideBuilder(url).into(this);
 	}
 
+	/**
+	 * Start load of image from specified URL using specified options.
+	 *
+	 * <p>Note: In order for the progress to be displayed correctly, the address given should be of
+	 * the raw image file ending in .jpg, .gif, etc.
+	 *
+	 * @param url address of image to load
+	 * @param options {@link RequestOptions}
+	 */
+	@SuppressWarnings("unused")
 	public void load(String url, RequestOptions options)
 	{
 		if (url == null) return;
@@ -404,6 +468,16 @@ public class NetPicView extends AppCompatImageView
 				.into(this);
 	}
 
+	/**
+	 * Start load of image from specified URL and force it to reload by giving Glide a unique
+	 * caching signature.
+	 *
+	 * <p>Note: In order for the progress to be displayed correctly, the address given should be of
+	 * the raw image file ending in .jpg, .gif, etc.
+	 *
+	 * @param url address of image to load
+	 */
+	@SuppressWarnings("unused")
 	public void forceReload(String url)
 	{
 		if (url == null) return;
@@ -412,6 +486,17 @@ public class NetPicView extends AppCompatImageView
 				.into(this);
 	}
 
+	/**
+	 * Start load of image from specified URL using specified options, and force it to reload by
+	 * giving Glide a unique caching signature.
+	 *
+	 * <p>Note: In order for the progress to be displayed correctly, the address given should be of
+	 * the raw image file ending in .jpg, .gif, etc.
+	 *
+	 * @param url address of image to load
+	 * @param options {@link RequestOptions}
+	 */
+	@SuppressWarnings("unused")
 	public void forceReload(String url, RequestOptions options)
 	{
 		if (url == null) return;
