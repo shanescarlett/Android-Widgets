@@ -343,6 +343,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		mItemViewListeners.remove(typeCode);
 	}
 
+	void clearOnItemViewListeners()
+	{
+		mItemViewListeners.clear();
+	}
+
 	void setAnimationDuration(int value)
 	{
 		mDuration = value;

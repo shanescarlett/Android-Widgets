@@ -337,6 +337,16 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
+	 * Clear all item creation and binding listeners.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void clearOnItemListeners()
+	{
+		mAdapter.clearOnItemViewListeners();
+	}
+
+	/**
 	 * Add a callback to be invoked when user clicks on an item in EasyRecyclerView.
 	 *
 	 * @param l {@link OnItemClickListener}
@@ -356,6 +366,16 @@ public class EasyRecyclerView extends RecyclerView
 	public void removeOnItemClickListener(OnItemClickListener l)
 	{
 		mOnItemClickListeners.remove(l);
+	}
+
+	/**
+	 * Clear all item click callbacks.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void clearOnItemClickListeners()
+	{
+		mOnItemClickListeners.clear();
 	}
 
 	/**
@@ -380,6 +400,15 @@ public class EasyRecyclerView extends RecyclerView
 		mOnItemLongClickListeners.remove(l);
 	}
 
+	/**
+	 * Clear all item long click callbacks.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void clearOnItemLongClickListeners()
+	{
+		mOnItemLongClickListeners.clear();
+	}
 
 	/**
 	 * Add a callback to be invoked when user reaches the end of the list of items and more
@@ -402,6 +431,16 @@ public class EasyRecyclerView extends RecyclerView
 	public void removeOnLoadRequestListener(OnLoadRequestListener l)
 	{
 		mOnLoadRequestListeners.remove(l);
+	}
+
+	/**
+	 * Clear all on load request callbacks.
+	 *
+	 */
+	@SuppressWarnings("unused")
+	public void clearOnLoadRequestListener()
+	{
+		mOnLoadRequestListeners.clear();
 	}
 
 	//Behaviour
