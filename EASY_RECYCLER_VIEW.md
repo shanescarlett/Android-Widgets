@@ -31,7 +31,10 @@ RecyclerView.LayoutManager lm = new LinearLayoutManager(this);
 recycler.setLayoutManager(lm)
 ```
 
-The view of the item can be set by either setting a layout resource, or dynamically returning a View through the OnCreateItemViewListener. A routine to bind the item's data to the created view must also be set..
+The view of the item can be set by either setting a layout resource, or dynamically returning a View through the OnCreateItemViewListener.
+A routine to bind the item's data to the created view must also be set.
+When binding data to the view, child view references should be obtained from the supplied `SparseArray` of view references, rather than calling
+`findViewById(int)` on the view. This is because accessing the cache is much faster than the latter method, and improves performance.
 
 ```Java
 easyRecyclerView.addOnCreateItemViewListener(ITEM_TYPE,
@@ -45,7 +48,7 @@ easyRecyclerView.addOnCreateItemViewListener(ITEM_TYPE,
     }
 
     @Override
-    public void OnBindItemView(View view, Object item)
+    public void OnBindItemView(View view, SparseArray<View> viewCache, Object item)
     {
         //TODO: Do something to view.
     }
@@ -60,11 +63,11 @@ easyRecyclerView.addOnBindItemViewListener(ITEM_TYPE,
         new EasyRecyclerView.OnBindItemViewListener()
 {
     @Override
-    public void OnBindItemView(View view, Object item)
+    public void OnBindItemView(View view, SparseArray<View> viewCache, Object item)
     {
         //Find Views
-        TextView titleView = view.findViewById(R.id.title);
-        TextView messageView = view.findViewById(R.id.message);
+        TextView titleView = viewCache.get(R.id.title);
+        TextView messageView = viewCache.get(R.id.message);
 
         //Get Data from Item
         String message = ((MyItem)item).getMessage();
@@ -79,7 +82,7 @@ easyRecyclerView.addOnBindItemViewListener(ITEM_TYPE,
 More than one type of item can be specified this way, through custom defined `ITEM_TYPE` codes. Different view layouts and binding routines can be specified for objects of the same type, depending on how they are required to be displayed in the list.
 For example, you may want items to be shown one way, but in-line advertisements to have a different set of data and appearance in the list.
 
-Click actions on the items can be obtained through the click listener inteface:
+Click actions on the items can be obtained through the click listener interface:
 ```Java
 recycler.setOnItemClickListener(new EasyRecyclerView.OnItemClickListener()
 {
