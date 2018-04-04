@@ -9,7 +9,9 @@ import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
@@ -41,6 +43,7 @@ public class EasyRecyclerView extends RecyclerView
 
 	//Callbacks
 	private ArrayList<OnItemClickListener> mOnItemClickListeners = new ArrayList<>();
+	private ArrayList<OnItemLongClickListener> mOnItemLongClickListeners = new ArrayList<>();
 	private ArrayList<OnLoadRequestListener> mOnLoadRequestListeners = new ArrayList<>();
 
 	private int mAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
@@ -105,6 +108,22 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
+	 * Interface definition for a callback to be invoked when an item within the EasyRecyclerView
+	 * is clicked and held.
+	 *
+	 */
+	public interface OnItemLongClickListener
+	{
+		/**
+		 * Called when an item view is clicked and held.
+		 *
+		 * @param v view of the object that was clicked
+		 * @param object data object associated with the item
+		 */
+		void OnItemLongClick(View v, Object object);
+	}
+
+	/**
 	 * Interface definition for a callback to be invoked when a View for an item needs to be
 	 * created.
 	 *
@@ -120,13 +139,17 @@ public class EasyRecyclerView extends RecyclerView
 
 		/**
 		 * Called when the data needs to be bound to the item's view.
-		 * The necessary data should be read from
-		 * {@code item} and bound to {@code view}.
+		 * The necessary data should be read from {@code item} and bound to {@code view}.
+		 *
+		 * <p>Note: It is recommended to access child views via the supplied {@code viewCache}, as opposed
+		 * to calling {@link View#findViewById(int)}, as the cache method is several times faster
+		 * to execute.
 		 *
 		 * @param view instantiated view of the item
+		 * @param viewCache cache of all children of the view, accessed by view id
 		 * @param item data object of the item
 		 */
-		void OnBindItemView(View view, Object item);
+		void OnBindItemView(View view, SparseArray<View> viewCache, Object item);
 	}
 
 	/**
@@ -138,13 +161,17 @@ public class EasyRecyclerView extends RecyclerView
 	{
 		/**
 		 * Called when the data needs to be bound to the item's view.
-		 * The necessary data should be read from
-		 * {@code item} and bound to {@code view}.
+		 * The necessary data should be read from {@code item} and bound to {@code view}.
+		 *
+		 * <p>Note: It is recommended to access child views via the supplied {@code viewCache}, as opposed
+		 * to calling {@link View#findViewById(int)}, as the cache method is several times faster
+		 * to execute.
 		 *
 		 * @param view instantiated view of the item
+		 * @param viewCache cache of all children of the view, accessed by view id
 		 * @param item data object of the item
 		 */
-		void OnBindItemView(View view, Object item);
+		void OnBindItemView(View view, SparseArray<View> viewCache, Object item);
 	}
 
 	/**
@@ -191,6 +218,12 @@ public class EasyRecyclerView extends RecyclerView
 		});
 	}
 
+	@Override
+	public void onScrolled(int dx, int dy)
+	{
+
+	}
+
 	private void configureAdapter()
 	{
 		mAdapter = new ScarlettRecyclerAdapter();
@@ -205,6 +238,18 @@ public class EasyRecyclerView extends RecyclerView
 				for(OnItemClickListener l : mOnItemClickListeners)
 				{
 					l.OnItemClick(v, object);
+				}
+			}
+		});
+		mAdapter.setOnItemLongClickListener(new ScarlettRecyclerAdapter.OnItemLongClickListener()
+		{
+			@Override
+			public void OnItemLongClick(View v, Object object)
+			{
+				if(!mEnabled){return;}
+				for(OnItemLongClickListener l : mOnItemLongClickListeners)
+				{
+					l.OnItemLongClick(v, object);
 				}
 			}
 		});
@@ -244,9 +289,9 @@ public class EasyRecyclerView extends RecyclerView
 			}
 
 			@Override
-			public void OnBindItemView(View v, Object item)
+			public void OnBindItemView(View v, SparseArray<View> cache, Object item)
 			{
-				l.OnBindItemView(v, item);
+				l.OnBindItemView(v, cache, item);
 			}
 		}, typeCode);
 	}
@@ -273,9 +318,9 @@ public class EasyRecyclerView extends RecyclerView
 			}
 
 			@Override
-			public void OnBindItemView(View v, Object item)
+			public void OnBindItemView(View v, SparseArray<View> cache, Object item)
 			{
-				l.OnBindItemView(v, item);
+				l.OnBindItemView(v, cache, item);
 			}
 		}, typeCode);
 	}
@@ -312,6 +357,29 @@ public class EasyRecyclerView extends RecyclerView
 	{
 		mOnItemClickListeners.remove(l);
 	}
+
+	/**
+	 * Add a callback to be invoked when user long clicks on an item in EasyRecyclerView.
+	 *
+	 * @param l {@link OnItemLongClickListener}
+	 */
+	@SuppressWarnings("unused")
+	public void addOnItemLongClickListener(OnItemLongClickListener l)
+	{
+		mOnItemLongClickListeners.add(l);
+	}
+
+	/**
+	 * Remove an on item long click callback.
+	 *
+	 * @param l {@link OnItemLongClickListener}
+	 */
+	@SuppressWarnings("unused")
+	public void removeOnItemLongClickListener(OnItemLongClickListener l)
+	{
+		mOnItemLongClickListeners.remove(l);
+	}
+
 
 	/**
 	 * Add a callback to be invoked when user reaches the end of the list of items and more

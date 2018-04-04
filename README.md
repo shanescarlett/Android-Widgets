@@ -62,7 +62,7 @@ Add the following dependency in the app's build.gradle file:
 
 ```
 dependencies {
-    compile 'net.scarlettsystems.android:widget:0.1.9'
+    compile 'net.scarlettsystems.android:widget:0.1.10'
 }
 ```
 

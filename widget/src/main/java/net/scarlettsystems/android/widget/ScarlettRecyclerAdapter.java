@@ -24,6 +24,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	private ArrayList<Object> mDataset = new ArrayList<>();
 	private ArrayList<Integer> mTypeset = new ArrayList<>();
 	private OnItemClickListener mItemClickListener = null;
+	private OnItemLongClickListener mItemLongClickListener = null;
 	private SparseArray<ItemViewListener> mItemViewListeners = new SparseArray<>();
 	private ItemViewListener mErrorListener;
 	private RecyclerView mRecyclerView;
@@ -50,7 +51,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			}
 
 			@Override
-			public void OnBindItemView(View v, Object item)
+			public void OnBindItemView(View v, SparseArray<View> cache, Object item)
 			{
 				Log.e("EasyRecyclerView","Bind request for unrecognised item. Set OnBindItemView for this item type.");
 			}
@@ -59,16 +60,19 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	//Holder Classes
 
-	private class ItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener
+	private class ItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener
 	{
 		private View mView;
 		private Object mItem;
+		private SparseArray<View> mChildViewCache = new SparseArray<>();
 
 		ItemHolder(View view)
 		{
 			super(view);
 			mView = view;
 			view.setOnClickListener(this);
+			view.setOnLongClickListener(this);
+			cacheChildren(mView);
 		}
 
 		@Override
@@ -76,6 +80,26 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		{
 			if(mItemClickListener == null){return;}
 			mItemClickListener.OnItemClick(v, mItem);
+		}
+
+		@Override
+		public boolean onLongClick(View v)
+		{
+			if(mItemLongClickListener == null){return false;}
+			mItemLongClickListener.OnItemLongClick(v, mItem);
+			return true;
+		}
+
+		void cacheChildren(View view)
+		{
+			mChildViewCache.append(view.getId(), view);
+			if(view instanceof ViewGroup)
+			{
+				for(int c = 0; c < ((ViewGroup) view).getChildCount(); c++)
+				{
+					cacheChildren(((ViewGroup) view).getChildAt(c));
+				}
+			}
 		}
 
 		void setItem(Object item)
@@ -91,6 +115,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		public View getView()
 		{
 			return mView;
+		}
+
+		public SparseArray<View> getViewCache()
+		{
+			return mChildViewCache;
 		}
 	}
 
@@ -229,10 +258,15 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		void OnItemClick(View v, Object object);
 	}
 
+	public interface OnItemLongClickListener
+	{
+		void OnItemLongClick(View v, Object object);
+	}
+
 	public interface ItemViewListener
 	{
 		View OnCreateItemView(ViewGroup parent);
-		void OnBindItemView(View v, Object item);
+		void OnBindItemView(View v, SparseArray<View> cache, Object item);
 	}
 
 	//Callback Methods
@@ -283,7 +317,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			h.setItem(mDataset.get(position));
 			mItemViewListeners
 					.get(mTypeset.get(position), mErrorListener)
-					.OnBindItemView(h.getView(), h.getItem());
+					.OnBindItemView(h.getView(), h.getViewCache(), h.getItem());
 		}
 	}
 
@@ -292,6 +326,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	void setOnItemClickListener(OnItemClickListener l)
 	{
 		mItemClickListener = l;
+	}
+
+	void setOnItemLongClickListener(OnItemLongClickListener l)
+	{
+		mItemLongClickListener = l;
 	}
 
 	void addOnItemViewListener(ItemViewListener l, int typeCode)

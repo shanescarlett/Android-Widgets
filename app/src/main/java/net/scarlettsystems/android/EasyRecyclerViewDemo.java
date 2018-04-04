@@ -6,6 +6,8 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
+import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -48,7 +50,6 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 	{
 		/* Find the view */
 		easyRecyclerView = findViewById(R.id.easy_recycler_view);
-
 		/* Specify the binding procedure for each item and set the view of items via layout
 		resource. It is also possible to specify the view through configuring the
 		OnCreateItemViewListener and programmatically creating a view each time it is requested. */
@@ -57,16 +58,28 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 				new EasyRecyclerView.OnBindItemViewListener()
 		{
 			@Override
-			public void OnBindItemView(View view, Object item)
+			public void OnBindItemView(View view, SparseArray<View> cache, Object item)
 			{
 				SampleObject object = (SampleObject)item;
 				Glide.with(getBaseContext())
 						.load(object.getImageUrl())
 						.thumbnail(0.05f)
 						.apply(new RequestOptions().signature(new ObjectKey(String.valueOf(System.currentTimeMillis() + counter++))))
-						.into((ImageView)view.findViewById(R.id.picture));
-				((TextView)view.findViewById(R.id.text)).setText(object.getText());
-				view.findViewById(R.id.root).setBackgroundColor(object.getColour());
+						.into((ImageView)cache.get(R.id.picture));
+				((TextView)cache.get(R.id.text)).setText(object.getText());
+				cache.get(R.id.root).setBackgroundColor(object.getColour());
+//				View test;
+//				long startTime = System.nanoTime();
+//				test = findViewById(R.id.root);
+//				long endTime = System.nanoTime();
+//				long findViewTime = (endTime - startTime);
+//				startTime = System.nanoTime();
+//				test = cache.get(R.id.root);
+//				endTime = System.nanoTime();
+//				long cacheTime = (endTime - startTime);
+//				Log.e("findViewById",Long.toString(findViewTime));
+//				Log.e("cache",Long.toString(cacheTime));
+//				test.setBackgroundColor(object.getColour());
 			}
 		});
 
@@ -149,7 +162,7 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 			}
 
 			@Override
-			public void OnBindItemView(View view, Object item)
+			public void OnBindItemView(View view, SparseArray<View> cache, Object item)
 			{
 				((TextView)view.findViewWithTag("text"))
 						.setText(((DifferentObject)item).getText());
@@ -215,63 +228,63 @@ public class EasyRecyclerViewDemo extends AppCompatActivity
 		easyRecyclerView.addItems(objects, SAMPLE_TYPE);
 		easyRecyclerView.addItem(new DifferentObject(), DIFFERENT_TYPE);
 	}
-}
 
-class SampleObject
-{
-	private String imageUrl;
-	private String text;
-	private int colour;
-
-	SampleObject()
+	class SampleObject
 	{
-		Lorem lorem = LoremIpsum.getInstance();
-		imageUrl = "https://picsum.photos/512/?random";
-		text = lorem.getWords(8, 16);
-		Random rnd = new Random();
-		colour = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+		private String imageUrl;
+		private String text;
+		private int colour;
+
+		public SampleObject()
+		{
+			Lorem lorem = LoremIpsum.getInstance();
+			imageUrl = "https://picsum.photos/512/?random";
+			text = lorem.getWords(8, 16);
+			Random rnd = new Random();
+			colour = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+		}
+
+		public String getImageUrl()
+		{
+			return imageUrl;
+		}
+
+		public String getText()
+		{
+			return text;
+		}
+
+		public void setText(String text){this.text = text;}
+
+		public int getColour()
+		{
+			return colour;
+		}
 	}
 
-	String getImageUrl()
+	private class DifferentObject
 	{
-		return imageUrl;
-	}
+		private String text;
+		private int colour;
 
-	String getText()
-	{
-		return text;
-	}
+		DifferentObject()
+		{
+			Lorem lorem = LoremIpsum.getInstance();
+			text = lorem.getWords(24, 32);
+			Random rnd = new Random();
+			colour = Color.WHITE;
+		}
 
-	void setText(String text){this.text = text;}
+		String getText()
+		{
+			return text;
+		}
 
-	int getColour()
-	{
-		return colour;
-	}
-}
+		void setText(String text){this.text = text;}
 
-class DifferentObject
-{
-	private String text;
-	private int colour;
-
-	DifferentObject()
-	{
-		Lorem lorem = LoremIpsum.getInstance();
-		text = lorem.getWords(24, 32);
-		Random rnd = new Random();
-		colour = Color.WHITE;
-	}
-
-	String getText()
-	{
-		return text;
-	}
-
-	void setText(String text){this.text = text;}
-
-	int getColour()
-	{
-		return colour;
+		int getColour()
+		{
+			return colour;
+		}
 	}
 }
