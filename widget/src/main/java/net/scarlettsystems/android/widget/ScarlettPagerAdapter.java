@@ -1,86 +1,97 @@
 package net.scarlettsystems.android.widget;
 
-import android.support.v4.view.PagerAdapter;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.view.View;
-import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-class ScarlettPagerAdapter extends PagerAdapter
+class ScarlettPagerAdapter extends FragmentPagerAdapter
 {
-	private ArrayList<View> mViews = new ArrayList<>();
+	private ArrayList<Fragment> mFragments = new ArrayList<>();
+
+	ScarlettPagerAdapter(FragmentManager fm)
+	{
+		super(fm);
+	}
 
 	@Override
-	public int getItemPosition (Object object)
+	public Fragment getItem(int position)
 	{
-		int index = mViews.indexOf (object);
+		return mFragments.get(position);
+	}
+
+	@Override
+	public int getItemPosition (@NonNull Object object)
+	{
+		int index = mFragments.indexOf(object);
 		if (index == -1)
 			return POSITION_NONE;
 		else
 			return index;
 	}
 
-	@Override
-	public Object instantiateItem (ViewGroup container, int position)
-	{
-		View v = mViews.get (position);
-		container.addView (v);
-		return v;
-	}
+//	@Override
+//	public Object instantiateItem (ViewGroup container, int position)
+//	{
+//		View v = mFragments.get (position);
+//		container.addView (v);
+//		return v;
+//	}
 
 	@Override
 	public int getCount ()
 	{
-		return mViews.size();
+		return mFragments.size();
 	}
 
-	@Override
-	public boolean isViewFromObject (View view, Object object)
+//	@Override
+//	public boolean isViewFromObject (View view, Object object)
+//	{
+//		return view == object;
+//	}
+//
+//	@Override
+//	public void destroyItem (ViewGroup container, int position, Object object)
+//	{
+//		container.removeView (mFragments.get (position));
+//	}
+
+	public void addFragment (Fragment fragment)
 	{
-		return view == object;
+		addFragment(fragment, mFragments.size());
 	}
 
-	@Override
-	public void destroyItem (ViewGroup container, int position, Object object)
+	public void addFragment (Fragment fragment, int position)
 	{
-		container.removeView (mViews.get (position));
-	}
-
-	public int addView (View view)
-	{
-		return addView (view, mViews.size());
-	}
-
-	public int addView (View v, int position)
-	{
-		mViews.add (position, v);
-		notifyDataSetChanged();
-		return position;
-	}
-
-	public void removeView(int position)
-	{
-		mViews.remove(position);
+		mFragments.add (position, fragment);
 		notifyDataSetChanged();
 	}
 
-	public int removeView (ViewPager pager, View view)
+	public void removeFragment(int position)
 	{
-		return removeView (pager, mViews.indexOf (view));
+		mFragments.remove(position);
+		notifyDataSetChanged();
 	}
 
-	public int removeView (ViewPager pager, int position)
+	public int removeFragment (ViewPager pager, Fragment view)
+	{
+		return removeFragment (pager, mFragments.indexOf (view));
+	}
+
+	public int removeFragment (ViewPager pager, int position)
 	{
 		pager.setAdapter (null);
-		mViews.remove (position);
+		mFragments.remove (position);
 		pager.setAdapter (this);
 		notifyDataSetChanged();
 		return position;
 	}
 
-	public View getView (int position)
+	public Fragment getFragment (int position)
 	{
-		return mViews.get (position);
+		return mFragments.get (position);
 	}
 }

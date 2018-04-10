@@ -2,7 +2,9 @@ package net.scarlettsystems.android.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,8 +16,11 @@ import android.view.View;
  * Adding and removing pages are facilitated by simple method calls on this instance,
  * by passing in Views.
  *
+ * <p>Note: For very large amounts of pages, you should manually use {@link ViewPager} with a
+ * {@link android.support.v4.app.FragmentStatePagerAdapter}, for performance concerns.
+ *
  * @author Shane Scarlett
- * @version 1.0.0
+ * @version 1.1.0
  * @see ViewPager
  */
 public class EasyViewPager extends ViewPager
@@ -51,7 +56,7 @@ public class EasyViewPager extends ViewPager
 
 	private void initialise()
 	{
-		mAdapter = new ScarlettPagerAdapter();
+		mAdapter = new ScarlettPagerAdapter(((AppCompatActivity)getContext()).getSupportFragmentManager());
 		this.setAdapter(mAdapter);
 	}
 
@@ -60,9 +65,12 @@ public class EasyViewPager extends ViewPager
 	 *
 	 * @param view view to add as page
 	 */
+	@SuppressWarnings("unused")
 	public void addPage(View view)
 	{
-		mAdapter.addView(view);
+		ViewWrapperFragment fragment = new ViewWrapperFragment();
+		fragment.setView(view);
+		mAdapter.addFragment(fragment);
 	}
 
 	/**
@@ -71,9 +79,35 @@ public class EasyViewPager extends ViewPager
 	 * @param view view to add as page
 	 * @param index zero-based index at which to add page
 	 */
+	@SuppressWarnings("unused")
 	public void addPage(View view, int index)
 	{
-		mAdapter.addView(view, index);
+		ViewWrapperFragment fragment = new ViewWrapperFragment();
+		fragment.setView(view);
+		mAdapter.addFragment(fragment, index);
+	}
+
+	/**
+	 * Add a view as a page to EasyViewPager. Page is automatically added to the end.
+	 *
+	 * @param fragment fragment to add as page
+	 */
+	@SuppressWarnings("unused")
+	public void addPage(Fragment fragment)
+	{
+		mAdapter.addFragment(fragment);
+	}
+
+	/**
+	 * Add a view as a page to EasyViewPager at a specified index.
+	 *
+	 * @param fragment fragment to add as page
+	 * @param index zero-based index at which to add page
+	 */
+	@SuppressWarnings("unused")
+	public void addPage(Fragment fragment, int index)
+	{
+		mAdapter.addFragment(fragment, index);
 	}
 
 	/**
@@ -82,9 +116,10 @@ public class EasyViewPager extends ViewPager
 	 * @param index zero-based index of page to return
 	 * @return view of requested page
 	 */
-	public View getPage(int index)
+	@SuppressWarnings("unused")
+	public Object getPage(int index)
 	{
-		return mAdapter.getView(index);
+		return mAdapter.getFragment(index);
 	}
 
 	/**
@@ -92,15 +127,17 @@ public class EasyViewPager extends ViewPager
 	 *
 	 * @param index zero-based index of page to remove
 	 */
+	@SuppressWarnings("unused")
 	public void removePage(int index)
 	{
-		mAdapter.removeView(index);
+		mAdapter.removeFragment(index);
 	}
 
 	/**
 	 * Enable manual swiping action between pages from the user.
 	 *
 	 */
+	@SuppressWarnings("unused")
 	public void enableSwipe()
 	{
 		mSwipeable = true;
@@ -111,6 +148,7 @@ public class EasyViewPager extends ViewPager
 	 * pages can only be changed programmatically.
 	 *
 	 */
+	@SuppressWarnings("unused")
 	public void disableSwipe()
 	{
 		mSwipeable = false;
@@ -119,26 +157,12 @@ public class EasyViewPager extends ViewPager
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent event)
 	{
-		if(mSwipeable)
-		{
-			return super.onInterceptTouchEvent(event);
-		}
-		else
-		{
-			return false;
-		}
+		return mSwipeable && super.onInterceptTouchEvent(event);
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		if(mSwipeable)
-		{
-			return super.onTouchEvent(event);
-		}
-		else
-		{
-			return false;
-		}
+		return mSwipeable && super.onTouchEvent(event);
 	}
 }
