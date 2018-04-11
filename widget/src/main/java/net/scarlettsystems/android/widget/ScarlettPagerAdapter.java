@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 
 import java.util.ArrayList;
 
@@ -33,31 +32,11 @@ class ScarlettPagerAdapter extends FragmentPagerAdapter
 			return index;
 	}
 
-//	@Override
-//	public Object instantiateItem (ViewGroup container, int position)
-//	{
-//		View v = mFragments.get (position);
-//		container.addView (v);
-//		return v;
-//	}
-
 	@Override
 	public int getCount ()
 	{
 		return mFragments.size();
 	}
-
-//	@Override
-//	public boolean isViewFromObject (View view, Object object)
-//	{
-//		return view == object;
-//	}
-//
-//	@Override
-//	public void destroyItem (ViewGroup container, int position, Object object)
-//	{
-//		container.removeView (mFragments.get (position));
-//	}
 
 	public void addFragment (Fragment fragment)
 	{
@@ -74,20 +53,6 @@ class ScarlettPagerAdapter extends FragmentPagerAdapter
 	{
 		mFragments.remove(position);
 		notifyDataSetChanged();
-	}
-
-	public int removeFragment (ViewPager pager, Fragment view)
-	{
-		return removeFragment (pager, mFragments.indexOf (view));
-	}
-
-	public int removeFragment (ViewPager pager, int position)
-	{
-		pager.setAdapter (null);
-		mFragments.remove (position);
-		pager.setAdapter (this);
-		notifyDataSetChanged();
-		return position;
 	}
 
 	public Fragment getFragment (int position)
