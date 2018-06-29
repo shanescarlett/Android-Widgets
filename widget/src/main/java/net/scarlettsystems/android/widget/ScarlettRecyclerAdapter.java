@@ -3,7 +3,9 @@ package net.scarlettsystems.android.widget;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.graphics.PorterDuff;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
@@ -117,7 +119,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 			return mView;
 		}
 
-		public SparseArray<View> getViewCache()
+		SparseArray<View> getViewCache()
 		{
 			return mChildViewCache;
 		}
@@ -125,7 +127,6 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	private class LoaderHolder extends RecyclerView.ViewHolder
 	{
-		private View mView;
 		private RelativeLayout loaderContainer, paddingView;
 		private ProgressBar loader;
 		private boolean isShown = false;
@@ -133,7 +134,6 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		LoaderHolder(View itemView)
 		{
 			super(itemView);
-			mView = itemView;
 			paddingView = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_padding);
 			loaderContainer = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_loader_container);
 			loader = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_loader);
@@ -272,22 +272,22 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	//Callback Methods
 
 	@Override
-	public void onAttachedToRecyclerView(RecyclerView recyclerView)
+	public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView)
 	{
 		super.onAttachedToRecyclerView(recyclerView);
 		mRecyclerView = recyclerView;
-		View view = LayoutInflater
+		@SuppressLint("InflateParams") View view = LayoutInflater
 				.from(recyclerView.getContext())
 				.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, null, false);
 		mLoaderHolder = new LoaderHolder(view);
 	}
 
 	@Override
-	public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
+	public @NonNull
+	RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
 	{
 		if(viewType == TYPE_LOADER)
 		{
-			parent.addView(mLoaderHolder.mView);
 			return mLoaderHolder;
 		}
 		else if(viewType >= 0)
@@ -309,7 +309,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 	}
 
 	@Override
-	public void onBindViewHolder(RecyclerView.ViewHolder vh, int position)
+	public void onBindViewHolder(@NonNull RecyclerView.ViewHolder vh, int position)
 	{
 		if(vh instanceof ItemHolder)
 		{
@@ -468,8 +468,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	boolean isLoaderShown()
 	{
-		if(mLoaderHolder == null){return false;}
-		return mLoaderHolder.isShown();
+		return mLoaderHolder != null && mLoaderHolder.isShown();
 	}
 
 	void setAnimationEnabled(boolean enabled)
