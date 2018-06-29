@@ -1,5 +1,6 @@
 package net.scarlettsystems.android.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.v4.app.Fragment;
@@ -157,12 +158,27 @@ public class EasyViewPager extends ViewPager
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent event)
 	{
-		return mSwipeable && super.onInterceptTouchEvent(event);
+		try
+		{
+			return mSwipeable && super.onInterceptTouchEvent(event);
+		}
+		catch(Exception e)
+		{
+			return true;
+		}
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		return mSwipeable && super.onTouchEvent(event);
+		try
+		{
+			return mSwipeable && super.onTouchEvent(event);
+		}
+		catch(Exception e)
+		{
+			return true;
+		}
 	}
 }
