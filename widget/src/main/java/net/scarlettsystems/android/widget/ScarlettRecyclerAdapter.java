@@ -20,7 +20,7 @@ import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 
-class ScarlettRecyclerAdapter extends RecyclerView.Adapter
+class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 {
 	private boolean mAnimationEnabled = true;
 	private ArrayList<Object> mDataset = new ArrayList<>();
@@ -62,7 +62,15 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	//Holder Classes
 
-	private class ItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener
+	private abstract class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener
+	{
+		ViewHolder(@NonNull View itemView)
+		{
+			super(itemView);
+		}
+	}
+
+	private class ItemHolder extends ViewHolder
 	{
 		private View mView;
 		private Object mItem;
@@ -125,7 +133,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		}
 	}
 
-	private class LoaderHolder extends RecyclerView.ViewHolder
+	private class LoaderHolder extends ViewHolder
 	{
 		private RelativeLayout loaderContainer, paddingView;
 		private ProgressBar loader;
@@ -244,6 +252,17 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 		{
 			loader.getIndeterminateDrawable().setColorFilter(colour, PorterDuff.Mode.SRC_IN);
 		}
+
+		@Override
+		public void onClick(View view)
+		{
+		}
+
+		@Override
+		public boolean onLongClick(View view)
+		{
+			return false;
+		}
 	}
 
 	private class LoaderObject
@@ -284,7 +303,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter
 
 	@Override
 	public @NonNull
-	RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+	ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
 	{
 		if(viewType == TYPE_LOADER)
 		{
