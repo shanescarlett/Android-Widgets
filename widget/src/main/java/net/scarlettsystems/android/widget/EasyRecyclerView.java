@@ -863,6 +863,22 @@ public class EasyRecyclerView extends RecyclerView
 	}
 
 	/**
+	 * Replace item at specified index of the dataset displayed in EasyRecyclerView.
+	 *
+	 * @param item new item to replace with
+	 * @param index destination index
+	 * @param typeCode user defined type code of item
+	 */
+	@SuppressWarnings("unused")
+	public void replaceItem(Object item, int index, int typeCode)
+	{
+		if(index < 0){throw new IndexOutOfBoundsException();}
+		if(index >= mAdapter.getItemCountProtected()){throw new IndexOutOfBoundsException();}
+		if(typeCode < 0){throw new IllegalArgumentException(EX_TYPE_CODE);}
+		mAdapter.replaceItem(item, index, typeCode);
+	}
+
+	/**
 	 * Clears all data from the dataset.
 	 *
 	 */
