@@ -458,6 +458,13 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 		notifyItemRemoved(index);
 	}
 
+	void replaceItem(Object item, int index, int typeCode)
+	{
+		mDataset.set(index, item);
+		mTypeset.set(index, typeCode);
+		notifyItemChanged(index);
+	}
+
 	void removeAll()
 	{
 		int originalItemCount = getItemCountProtected();
