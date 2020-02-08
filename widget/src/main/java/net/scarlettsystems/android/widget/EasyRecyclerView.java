@@ -11,7 +11,6 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
@@ -200,6 +199,7 @@ public class EasyRecyclerView extends RecyclerView
 		setHasFixedSize(true);
 		setItemViewCacheSize(20);
 		setDrawingCacheEnabled(true);
+		setLayoutTransition(null);
 		setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
 		addOnScrollListener(new OnScrollListener()
 		{
@@ -216,6 +216,13 @@ public class EasyRecyclerView extends RecyclerView
 				}
 			}
 		});
+	}
+
+	@Override
+	protected void onAttachedToWindow()
+	{
+		((ViewGroup)getParent()).setLayoutTransition(null);
+		super.onAttachedToWindow();
 	}
 
 	@Override
@@ -614,6 +621,11 @@ public class EasyRecyclerView extends RecyclerView
 	public void setBottomPadding(int padding)
 	{
 		mAdapter.setBottomPadding(padding);
+	}
+
+	public void setEmptyPromptView(View v)
+	{
+		mAdapter.setEmptyPromptView(v);
 	}
 
 	//Animation
