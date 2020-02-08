@@ -68,6 +68,7 @@ public class EasyViewPager extends ViewPager
 		if(mAdapter == null)
 		{
 			mAdapter = new ScarlettPagerAdapter(mManager);
+			this.setAdapter(mAdapter);
 		}
 		return mAdapter;
 	}
@@ -75,21 +76,6 @@ public class EasyViewPager extends ViewPager
 	public void setFragmentManager(FragmentManager manager)
 	{
 		mManager = manager;
-	}
-
-	private void initialise()
-	{
-		Context context = getContext();
-		FragmentManager manager;
-		if(context instanceof AppCompatActivity)
-			manager = ((AppCompatActivity)context).getSupportFragmentManager();
-		else if(context instanceof ContextWrapper)
-			manager = ((AppCompatActivity)((ContextWrapper)context).getBaseContext()).getSupportFragmentManager().getFragments().get(0).getChildFragmentManager();
-		else
-			throw new IllegalStateException("Context is not an activity!");
-
-		mAdapter = new ScarlettPagerAdapter(manager);
-		this.setAdapter(mAdapter);
 	}
 
 	/**
