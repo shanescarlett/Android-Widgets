@@ -2,8 +2,10 @@ package net.scarlettsystems.android.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.TypedArray;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
@@ -27,19 +29,20 @@ import android.view.View;
 public class EasyViewPager extends ViewPager
 {
 	private ScarlettPagerAdapter mAdapter;
+	private FragmentManager mManager;
 	private boolean mSwipeable = true;
 
 	public EasyViewPager(Context context)
 	{
 		super(context);
-		initialise();
+		//initialise();
 	}
 
 	public EasyViewPager(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 		applyAttributes(context, attrs);
-		initialise();
+		//initialise();
 	}
 
 	private void applyAttributes(Context context, AttributeSet attrs)
@@ -55,9 +58,37 @@ public class EasyViewPager extends ViewPager
 		}
 	}
 
+	private ScarlettPagerAdapter getAdapterInternal()
+	{
+		if(mManager == null)
+		{
+			Context context = getContext();
+			mManager = ((AppCompatActivity)context).getSupportFragmentManager();
+		}
+		if(mAdapter == null)
+		{
+			mAdapter = new ScarlettPagerAdapter(mManager);
+		}
+		return mAdapter;
+	}
+
+	public void setFragmentManager(FragmentManager manager)
+	{
+		mManager = manager;
+	}
+
 	private void initialise()
 	{
-		mAdapter = new ScarlettPagerAdapter(((AppCompatActivity)getContext()).getSupportFragmentManager());
+		Context context = getContext();
+		FragmentManager manager;
+		if(context instanceof AppCompatActivity)
+			manager = ((AppCompatActivity)context).getSupportFragmentManager();
+		else if(context instanceof ContextWrapper)
+			manager = ((AppCompatActivity)((ContextWrapper)context).getBaseContext()).getSupportFragmentManager().getFragments().get(0).getChildFragmentManager();
+		else
+			throw new IllegalStateException("Context is not an activity!");
+
+		mAdapter = new ScarlettPagerAdapter(manager);
 		this.setAdapter(mAdapter);
 	}
 
@@ -71,7 +102,7 @@ public class EasyViewPager extends ViewPager
 	{
 		ViewWrapperFragment fragment = new ViewWrapperFragment();
 		fragment.setView(view);
-		mAdapter.addFragment(fragment);
+		getAdapterInternal().addFragment(fragment);
 	}
 
 	/**
@@ -85,7 +116,7 @@ public class EasyViewPager extends ViewPager
 	{
 		ViewWrapperFragment fragment = new ViewWrapperFragment();
 		fragment.setView(view);
-		mAdapter.addFragment(fragment, index);
+		getAdapterInternal().addFragment(fragment, index);
 	}
 
 	/**
@@ -96,7 +127,7 @@ public class EasyViewPager extends ViewPager
 	@SuppressWarnings("unused")
 	public void addPage(Fragment fragment)
 	{
-		mAdapter.addFragment(fragment);
+		getAdapterInternal().addFragment(fragment);
 	}
 
 	/**
@@ -108,7 +139,7 @@ public class EasyViewPager extends ViewPager
 	@SuppressWarnings("unused")
 	public void addPage(Fragment fragment, int index)
 	{
-		mAdapter.addFragment(fragment, index);
+		getAdapterInternal().addFragment(fragment, index);
 	}
 
 	/**
@@ -120,7 +151,7 @@ public class EasyViewPager extends ViewPager
 	@SuppressWarnings("unused")
 	public Object getPage(int index)
 	{
-		return mAdapter.getFragment(index);
+		return getAdapterInternal().getFragment(index);
 	}
 
 	/**
@@ -131,7 +162,7 @@ public class EasyViewPager extends ViewPager
 	@SuppressWarnings("unused")
 	public void removePage(int index)
 	{
-		mAdapter.removeFragment(index);
+		getAdapterInternal().removeFragment(index);
 	}
 
 	/**
