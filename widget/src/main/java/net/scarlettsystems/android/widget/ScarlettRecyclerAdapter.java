@@ -31,6 +31,9 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	private ItemViewListener mErrorListener;
 	private RecyclerView mRecyclerView;
 	private LoaderHolder mLoaderHolder;
+	private EmptyPromptHolder mEmptyPromptHolder;
+	private View mEmptyPromptView, mDummyView;
+
 	private Interpolator mLoaderShowInterpolator = new LinearInterpolator();
 	private Interpolator mLoaderHideInterpolator = new LinearInterpolator();
 
@@ -39,10 +42,13 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	private int[] mLoaderPadding = {0, 0, 0, 0};
 
 	private static final int TYPE_LOADER = -1;
+	private static final int TYPE_EMPTY_PROMPT = -2;
 
 	ScarlettRecyclerAdapter()
 	{
+		setHasStableIds(true);
 		mDataset.add(new LoaderObject());
+		mDataset.add(new EmptyPromptObject());
 		mErrorListener = new ItemViewListener()
 		{
 			@Override
@@ -133,6 +139,83 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 		}
 	}
 
+	private class EmptyPromptHolder extends ViewHolder
+	{
+		private View mView;
+		private boolean isShown;
+
+		EmptyPromptHolder(View itemView)
+		{
+			super(itemView);
+			mView = itemView;
+		}
+
+		@Override
+		public void onClick(View view){}
+
+		@Override
+		public boolean onLongClick(View view)
+		{
+			return false;
+		}
+
+		void showEmptyPrompt()
+		{
+			//Log.e("SRA", "showing empty" + mView.hashCode());
+			mView.setVisibility(View.VISIBLE);
+			if(mAnimationEnabled)
+			{
+				ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+				animator.setDuration(mDuration);
+				animator.setInterpolator(mLoaderShowInterpolator);
+				animator.setStartDelay(mDuration);
+				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
+				{
+					@Override
+					public void onAnimationUpdate(ValueAnimator animator)
+					{
+						mView.setAlpha(animator.getAnimatedFraction());
+					}
+				});
+				animator.start();
+			}
+			else
+			{
+				mView.setAlpha(1.0f);
+			}
+			isShown = true;
+		}
+
+		void hideEmptyPrompt()
+		{
+			//Log.e("SRA", "hiding empty " + mView.hashCode());
+			if(mAnimationEnabled)
+			{
+				ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+				animator.setDuration(mDuration);
+				animator.setInterpolator(mLoaderShowInterpolator);
+				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
+				{
+					@Override
+					public void onAnimationUpdate(ValueAnimator animator)
+					{
+						mView.setAlpha(1f - animator.getAnimatedFraction());
+						if(animator.getAnimatedFraction() == 1f)
+						{
+							//mView.setVisibility(View.GONE);
+						}
+					}
+				});
+				animator.start();
+			}
+			else
+			{
+				//mView.setVisibility(View.GONE);
+			}
+			isShown = false;
+		}
+	}
+
 	private class LoaderHolder extends ViewHolder
 	{
 		private RelativeLayout loaderContainer, paddingView;
@@ -179,7 +262,6 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 					}
 				});
 				animator.start();
-				isShown = true;
 			}
 			else
 			{
@@ -190,6 +272,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 						mLoaderPadding[3]);
 				Helpers.setViewHeight(loader, mLoaderHeight);
 			}
+			isShown = true;
 		}
 
 		void hideLoader()
@@ -228,7 +311,6 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 					}
 				});
 				animator.start();
-				isShown = false;
 			}
 			else
 			{
@@ -236,6 +318,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 				Helpers.setViewHeight(loader, 0);
 				loaderContainer.setVisibility(View.GONE);
 			}
+			isShown = false;
 		}
 
 		boolean isShown()
@@ -254,9 +337,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 		}
 
 		@Override
-		public void onClick(View view)
-		{
-		}
+		public void onClick(View view){}
 
 		@Override
 		public boolean onLongClick(View view)
@@ -266,6 +347,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	}
 
 	private class LoaderObject
+	{
+
+	}
+
+	private class EmptyPromptObject
 	{
 
 	}
@@ -289,16 +375,21 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	}
 
 	//Callback Methods
-
 	@Override
 	public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView)
 	{
 		super.onAttachedToRecyclerView(recyclerView);
 		mRecyclerView = recyclerView;
-		@SuppressLint("InflateParams") View view = LayoutInflater
-				.from(recyclerView.getContext())
-				.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, null, false);
-		mLoaderHolder = new LoaderHolder(view);
+//		@SuppressLint("InflateParams") View view = LayoutInflater
+//				.from(recyclerView.getContext())
+//				.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, recyclerView, false);
+//		mLoaderHolder = new LoaderHolder(view);
+		mDummyView = new View(recyclerView.getContext());
+		if(mEmptyPromptView == null)
+		{
+			mEmptyPromptView = mDummyView;
+		}
+		mEmptyPromptHolder = new EmptyPromptHolder(mEmptyPromptView);
 	}
 
 	@Override
@@ -307,7 +398,15 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		if(viewType == TYPE_LOADER)
 		{
+			View view = LayoutInflater
+					.from(parent.getContext())
+					.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, parent, false);
+			mLoaderHolder = new LoaderHolder(view);
 			return mLoaderHolder;
+		}
+		else if(viewType == TYPE_EMPTY_PROMPT)
+		{
+			return mEmptyPromptHolder;
 		}
 		else if(viewType >= 0)
 		{
@@ -341,6 +440,18 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	}
 
 	//Getters & Setters
+	void setEmptyPromptView(View v)
+	{
+		if(v == null)
+		{
+			mEmptyPromptHolder = new EmptyPromptHolder(mDummyView);
+		}
+		else
+		{
+
+			mEmptyPromptHolder = new EmptyPromptHolder(v);
+		}
+	}
 
 	void setOnItemClickListener(OnItemClickListener l)
 	{
@@ -410,7 +521,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
 	public int getItemCountProtected()
 	{
-		return mDataset.size() - 1;
+		return mDataset.size() - 2;
 	}
 
 	@Override
@@ -419,6 +530,10 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 		if(mDataset.get(position) instanceof LoaderObject)
 		{
 			return TYPE_LOADER;
+		}
+		else if(mDataset.get(position) instanceof EmptyPromptObject)
+		{
+			return TYPE_EMPTY_PROMPT;
 		}
 		else
 		{
@@ -434,6 +549,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		mDataset.add(getItemCountProtected(), item);
 		mTypeset.add(typeCode);
+		notifyInternal();
 		notifyItemInserted(getItemCountProtected());
 	}
 
@@ -441,6 +557,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		mDataset.addAll(getItemCountProtected(), items);
 		for(int c = 0; c < items.size(); c++){mTypeset.add(typeCode);}
+		notifyInternal();
 		notifyItemRangeInserted(getItemCountProtected(), items.size());
 	}
 
@@ -448,13 +565,19 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		mDataset.add(index, item);
 		mTypeset.add(index, typeCode);
+		notifyInternal();
 		notifyItemInserted(index);
 	}
 
 	void removeItem(int index)
 	{
+		if(index >= getItemCountProtected())
+		{
+			Log.e("SRA", "nope");
+		}
 		mDataset.remove(index);
 		mTypeset.remove(index);
+		notifyInternal();
 		notifyItemRemoved(index);
 	}
 
@@ -462,6 +585,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		mDataset.set(index, item);
 		mTypeset.set(index, typeCode);
+		notifyInternal();
 		notifyItemChanged(index);
 	}
 
@@ -469,9 +593,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		int originalItemCount = getItemCountProtected();
 		Object loader = mDataset.get(originalItemCount);
+		Object emptyPrompt = mDataset.get(originalItemCount + 1);
 		mDataset.clear();
 		mTypeset.clear();
 		mDataset.add(loader);
+		mDataset.add(emptyPrompt);
 		notifyItemRangeRemoved(0, originalItemCount);
 	}
 
@@ -495,6 +621,30 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	boolean isLoaderShown()
 	{
 		return mLoaderHolder != null && mLoaderHolder.isShown();
+	}
+
+	void showEmptyPrompt()
+	{
+		if(mEmptyPromptHolder == null){return;}
+		mEmptyPromptHolder.showEmptyPrompt();
+	}
+
+	void hideEmptyPrompt()
+	{
+		if(mEmptyPromptHolder == null){return;}
+		mEmptyPromptHolder.hideEmptyPrompt();
+	}
+
+	void notifyInternal()
+	{
+		if(getItemCountProtected() == 0)
+		{
+			showEmptyPrompt();
+		}
+		else
+		{
+			hideEmptyPrompt();
+		}
 	}
 
 	void setAnimationEnabled(boolean enabled)
