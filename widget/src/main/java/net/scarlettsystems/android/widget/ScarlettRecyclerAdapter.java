@@ -598,7 +598,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 		mTypeset.clear();
 		mDataset.add(loader);
 		mDataset.add(emptyPrompt);
-		notifyItemRangeRemoved(0, originalItemCount);
+		notifyDataSetChanged();
 	}
 
 	int indexOf(Object item)

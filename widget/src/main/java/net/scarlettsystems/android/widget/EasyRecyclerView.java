@@ -264,7 +264,7 @@ public class EasyRecyclerView extends RecyclerView
 
 	private void configureLayoutManager()
 	{
-		super.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
+		super.setLayoutManager(new ScarlettLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
 	}
 
 	private void configureAnimator()
