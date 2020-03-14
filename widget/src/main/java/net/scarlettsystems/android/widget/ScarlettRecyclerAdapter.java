@@ -3,7 +3,6 @@ package net.scarlettsystems.android.widget;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.graphics.PorterDuff;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -22,6 +21,8 @@ import java.util.ArrayList;
 
 class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 {
+	private int mOrientation = EasyRecyclerView.VERTICAL;
+
 	private boolean mAnimationEnabled = true;
 	private ArrayList<Object> mDataset = new ArrayList<>();
 	private ArrayList<Integer> mTypeset = new ArrayList<>();
@@ -38,7 +39,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	private Interpolator mLoaderHideInterpolator = new LinearInterpolator();
 
 	private int mDuration;
-	private int mLoaderHeight = 100;
+	private int mLoaderSize = 100;
 	private int[] mLoaderPadding = {0, 0, 0, 0};
 
 	private static final int TYPE_LOADER = -1;
@@ -64,6 +65,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 				Log.e("EasyRecyclerView","Bind request for unrecognised item. Set OnBindItemView for this item type.");
 			}
 		};
+	}
+
+	void setOrientation(int orientation)
+	{
+		mOrientation = orientation;
 	}
 
 	//Holder Classes
@@ -188,7 +194,6 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
 		void hideEmptyPrompt()
 		{
-			//Log.e("SRA", "hiding empty " + mView.hashCode());
 			if(mAnimationEnabled)
 			{
 				ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
@@ -218,7 +223,8 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
 	private class LoaderHolder extends ViewHolder
 	{
-		private RelativeLayout loaderContainer, paddingView;
+		private RelativeLayout loaderContainer;
+		private View paddingView;
 		private ProgressBar loader;
 		private boolean isShown = false;
 
@@ -228,12 +234,25 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 			paddingView = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_padding);
 			loaderContainer = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_loader_container);
 			loader = itemView.findViewById(R.id.net_scarlettsystems_android_widget_cardloader_loader);
-			Helpers.setViewHeight(loader, 0);
+			if(mOrientation == EasyRecyclerView.VERTICAL)
+				Helpers.setViewHeight(loader, 0);
+			else
+				Helpers.setViewWidth(loader, 0);
 			if(itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams)
 			{
-				StaggeredGridLayoutManager.LayoutParams layoutParams = new StaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-				layoutParams.setFullSpan(true);
-				itemView.setLayoutParams(layoutParams);
+				Log.e("sra", "setting lp");
+				if(mOrientation == EasyRecyclerView.VERTICAL)
+				{
+					StaggeredGridLayoutManager.LayoutParams layoutParams = new StaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+					layoutParams.setFullSpan(true);
+					itemView.setLayoutParams(layoutParams);
+				}
+				else
+				{
+					StaggeredGridLayoutManager.LayoutParams layoutParams = new StaggeredGridLayoutManager.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+					layoutParams.setFullSpan(true);
+					itemView.setLayoutParams(layoutParams);
+				}
 			}
 		}
 
@@ -242,7 +261,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 			loaderContainer.setVisibility(View.VISIBLE);
 			if(mAnimationEnabled)
 			{
-				ValueAnimator animator = ValueAnimator.ofInt(0, mLoaderHeight);
+				ValueAnimator animator = ValueAnimator.ofInt(0, mLoaderSize);
 				animator.setDuration(mDuration);
 				animator.setInterpolator(mLoaderShowInterpolator);
 				animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
@@ -256,7 +275,11 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 							pad[c] = Math.round((float)mLoaderPadding[c]
 									* animator.getAnimatedFraction());
 						}
-						Helpers.setViewHeight(loader, (int) animator.getAnimatedValue());
+						if(mOrientation == EasyRecyclerView.VERTICAL)
+							Helpers.setViewHeight(loader, (int) animator.getAnimatedValue());
+						else
+							Helpers.setViewWidth(loader, (int) animator.getAnimatedValue());
+
 						loaderContainer.setPadding(pad[0], pad[1], pad[2], pad[3]);
 						mRecyclerView.scrollToPosition(mRecyclerView.getLayoutManager().getItemCount() - 1);
 					}
@@ -270,7 +293,10 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 						mLoaderPadding[1],
 						mLoaderPadding[2],
 						mLoaderPadding[3]);
-				Helpers.setViewHeight(loader, mLoaderHeight);
+				if(mOrientation == EasyRecyclerView.VERTICAL)
+					Helpers.setViewHeight(loader, mLoaderSize);
+				else
+					Helpers.setViewWidth(loader, mLoaderSize);
 			}
 			isShown = true;
 		}
@@ -299,7 +325,10 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 									* (1f - animator.getAnimatedFraction()));
 						}
 						loaderContainer.setPadding(pad[0], pad[1], pad[2], pad[3]);
-						Helpers.setViewHeight(loader, (int) animator.getAnimatedValue());
+						if(mOrientation == EasyRecyclerView.VERTICAL)
+							Helpers.setViewHeight(loader, (int) animator.getAnimatedValue());
+						else
+							Helpers.setViewWidth(loader, (int) animator.getAnimatedValue());
 					}
 				});
 				animator.addListener(new AnimatorListenerAdapter()
@@ -315,7 +344,10 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 			else
 			{
 				loaderContainer.setPadding(0,0,0,0);
-				Helpers.setViewHeight(loader, 0);
+				if(mOrientation == EasyRecyclerView.VERTICAL)
+					Helpers.setViewHeight(loader, 0);
+				else
+					Helpers.setViewWidth(loader, 0);
 				loaderContainer.setVisibility(View.GONE);
 			}
 			isShown = false;
@@ -380,10 +412,6 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 	{
 		super.onAttachedToRecyclerView(recyclerView);
 		mRecyclerView = recyclerView;
-//		@SuppressLint("InflateParams") View view = LayoutInflater
-//				.from(recyclerView.getContext())
-//				.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, recyclerView, false);
-//		mLoaderHolder = new LoaderHolder(view);
 		mDummyView = new View(recyclerView.getContext());
 		if(mEmptyPromptView == null)
 		{
@@ -401,6 +429,12 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 			View view = LayoutInflater
 					.from(parent.getContext())
 					.inflate(R.layout.net_scarlettsystems_android_widget_cardloader, parent, false);
+			ViewGroup.LayoutParams lp;
+			if(mOrientation == EasyRecyclerView.VERTICAL)
+				lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+			else
+				lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+			view.setLayoutParams(lp);
 			mLoaderHolder = new LoaderHolder(view);
 			return mLoaderHolder;
 		}
@@ -485,7 +519,7 @@ class ScarlettRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
 	void setLoaderHeight(int value)
 	{
-		mLoaderHeight = value;
+		mLoaderSize = value;
 	}
 
 	Object getItem(int index)
