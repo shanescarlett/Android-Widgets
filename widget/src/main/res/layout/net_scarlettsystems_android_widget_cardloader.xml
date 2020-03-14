@@ -17,10 +17,10 @@
 			android:layout_height="56dp"
 			android:indeterminate="true"/>
 	</RelativeLayout>
-	<RelativeLayout
+	<View
 		android:id="@+id/net_scarlettsystems_android_widget_cardloader_padding"
 		android:layout_width="match_parent"
 		android:layout_height="1dp"
-		android:orientation="horizontal"></RelativeLayout>
+		android:orientation="horizontal"/>
 
 </LinearLayout>
