@@ -15,6 +15,13 @@ class Helpers
 		view.setLayoutParams(layoutParams);
 	}
 
+	public static void setViewWidth(View view, int width)
+	{
+		ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+		layoutParams.width = width;
+		view.setLayoutParams(layoutParams);
+	}
+
 	public static boolean softButtonsExist(Context context)
 	{
 		int id = context.getResources().getIdentifier("config_showNavigationBar", "bool", "android");
