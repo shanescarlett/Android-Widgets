@@ -531,6 +531,7 @@ public class EasyRecyclerView extends RecyclerView
 		}
 		//Set
 		lm.setAutoMeasureEnabled(true);
+		mAdapter.setOrientation(orientation);
 		super.setLayoutManager(lm);
 	}
 
