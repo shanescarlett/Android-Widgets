@@ -231,6 +231,36 @@ public class EasyRecyclerView extends RecyclerView
 
 	}
 
+	@Override
+	protected boolean isPaddingOffsetRequired()
+	{
+		return true;
+	}
+
+	@Override
+	protected int getTopPaddingOffset()
+	{
+		return -getPaddingTop();
+	}
+
+	@Override
+	protected int getBottomPaddingOffset()
+	{
+		return getPaddingBottom();
+	}
+
+	@Override
+	protected int getLeftPaddingOffset()
+	{
+		return -getPaddingLeft();
+	}
+
+	@Override
+	protected int getRightPaddingOffset()
+	{
+		return getPaddingRight();
+	}
+
 	private void configureAdapter()
 	{
 		mAdapter = new ScarlettRecyclerAdapter();
